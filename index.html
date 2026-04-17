@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Zajoma Chat - Login</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #4A90E2, #2E75B6);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 450px;
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #2E75B6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+            max-height: 280px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        .avatar-option {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+            object-fit: cover;
+        }
+        .avatar-option.selected {
+            border-color: #2E75B6;
+            transform: scale(1.05);
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="login-box">
+    <h2>💬 Zajoma Chat</h2>
+    <div id="loginPanel">
+        <input type="email" id="loginEmail" placeholder="Correo electrónico">
+        <input type="password" id="loginPassword" placeholder="Contraseña">
+        <button onclick="iniciarSesion()">Iniciar sesión</button>
+        <p><a href="#" onclick="mostrarRegistro()">¿No tienes cuenta? Regístrate</a></p>
+    </div>
+    <div id="registerPanel" style="display:none">
+        <input type="text" id="regNombre" placeholder="Nombre">
+        <input type="email" id="regEmail" placeholder="Correo electrónico">
+        <input type="password" id="regPassword" placeholder="Contraseña">
+        <div id="avatarSelector" class="avatar-grid"></div>
+        <button onclick="registrarUsuario()">Registrarse</button>
+        <p><a href="#" onclick="mostrarLogin()">¿Ya tienes cuenta? Inicia sesión</a></p>
+    </div>
+    <div id="errorMsg" class="error"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyC4-_JQsS625vRMkmM4PeVupxX97FVBe5U",
+    authDomain: "zajoma-8553f.firebaseapp.com",
+    projectId: "zajoma-8553f",
+    storageBucket: "zajoma-8553f.firebasestorage.app",
+    messagingSenderId: "390203043975",
+    appId: "1:390203043975:web:fe5e2f618ee285ce3bc822"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Generar lista de avatares (avatar1.png al avatar29.png)
+const avatares = [];
+for (let i = 1; i <= 29; i++) {
+    avatares.push({
+        img: `avatars/avatar${i}.png`,
+        color: "#" + Math.floor(Math.random()*16777215).toString(16)
+    });
+}
+
+let avatarSeleccionado = 0;
+
+function cargarAvatares() {
+    const container = document.getElementById('avatarSelector');
+    container.innerHTML = '';
+    
+    for (let i = 0; i < avatares.length; i++) {
+        const a = avatares[i];
+        const img = document.createElement('img');
+        img.src = a.img;
+        img.className = 'avatar-option';
+        if (i === avatarSeleccionado) img.classList.add('selected');
+        img.onclick = (function(idx) { return function() { seleccionarAvatar(idx); }; })(i);
+        img.onerror = function() {
+            console.log("Error cargando: " + this.src);
+            this.style.background = '#ccc';
+            this.style.display = 'flex';
+            this.style.alignItems = 'center';
+            this.style.justifyContent = 'center';
+            this.style.fontSize = '20px';
+            this.innerText = '?';
+        };
+        container.appendChild(img);
+    }
+}
+
+window.seleccionarAvatar = (idx) => {
+    avatarSeleccionado = idx;
+    document.querySelectorAll('.avatar-option').forEach((el, i) => {
+        if (i === idx) el.classList.add('selected');
+        else el.classList.remove('selected');
+    });
+};
+
+function mostrarError(msg) {
+    document.getElementById('errorMsg').innerText = msg;
+    setTimeout(() => document.getElementById('errorMsg').innerText = '', 3000);
+}
+
+window.mostrarRegistro = () => {
+    document.getElementById('loginPanel').style.display = 'none';
+    document.getElementById('registerPanel').style.display = 'block';
+    cargarAvatares();
+};
+
+window.mostrarLogin = () => {
+    document.getElementById('loginPanel').style.display = 'block';
+    document.getElementById('registerPanel').style.display = 'none';
+};
+
+window.registrarUsuario = async () => {
+    const nombre = document.getElementById('regNombre').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const avatar = avatares[avatarSeleccionado];
+    
+    if (!nombre || !email || !password) {
+        mostrarError('Completa todos los campos');
+        return;
+    }
+    
+    try {
+        const user = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, 'usuarios', user.user.uid), {
+            nombre: nombre,
+            email: email,
+            uid: user.user.uid,
+            avatarImg: avatar.img,
+            avatarColor: avatar.color,
+            online: true,
+            fondoChat: '#ECF5FF'
+        });
+        window.location.href = 'chat.html';
+    } catch (error) {
+        mostrarError(error.message);
+    }
+};
+
+window.iniciarSesion = async () => {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    
+    if (!email || !password) {
+        mostrarError('Ingresa email y contraseña');
+        return;
+    }
+    
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = 'chat.html';
+    } catch (error) {
+        mostrarError(error.message);
+    }
+};
+</script>
+</body>
+</html>

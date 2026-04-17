@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Zajoma Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #4A90E2;
+            height: 100vh;
+            display: flex;
+        }
+        .contacts {
+            width: 320px;
+            background: #D6E6F5;
+            border-right: 1px solid #B8D0E8;
+            display: flex;
+            flex-direction: column;
+        }
+        .user-header {
+            padding: 15px;
+            background: #2E75B6;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .contacts-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .contact {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #B8D0E8;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .contact:hover {
+            background: #C8DDF5;
+        }
+        .contact-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .contact-info {
+            flex: 1;
+        }
+        .contact-name {
+            font-weight: bold;
+        }
+        .contact-status {
+            font-size: 11px;
+            color: #555;
+        }
+        .logout-btn {
+            padding: 12px;
+            text-align: center;
+            background: #E8F0FE;
+            cursor: pointer;
+            color: red;
+        }
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--chat-bg, #ECF5FF);
+        }
+        .chat-header {
+            padding: 15px;
+            background: #D6E6F5;
+            border-bottom: 1px solid #B8D0E8;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .chat-header-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .message {
+            max-width: 70%;
+            padding: 10px;
+            border-radius: 12px;
+        }
+        .message.sent {
+            background: #2E75B6;
+            color: white;
+            align-self: flex-end;
+        }
+        .message.received {
+            background: white;
+            color: black;
+            align-self: flex-start;
+            border: 1px solid #ccc;
+        }
+        .input-area {
+            display: flex;
+            padding: 12px;
+            background: #D6E6F5;
+            gap: 8px;
+        }
+        .input-area input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+            outline: none;
+        }
+        .input-area button {
+            padding: 10px 20px;
+            background: #2E75B6;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .empty {
+            text-align: center;
+            color: #888;
+            margin-top: 50px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 400px;
+            padding: 20px;
+            text-align: center;
+        }
+        .modal-content input, .modal-content select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .modal-content button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background: #2E75B6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+        }
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+            max-height: 280px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        .avatar-option {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+            object-fit: cover;
+        }
+        .avatar-option.selected {
+            border-color: #2E75B6;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+<div class="contacts">
+    <div class="user-header" onclick="abrirModalPerfil()">
+        <img class="user-avatar" id="userAvatar" src="" alt="Avatar">
+        <span id="userName">Cargando...</span>
+    </div>
+    <div class="contacts-list" id="contactsList">
+        <div style="padding: 20px; text-align: center;">Cargando contactos...</div>
+    </div>
+    <div class="logout-btn" onclick="cerrarSesion()">🚪 Cerrar sesión</div>
+</div>
+
+<div class="chat-area" id="chatPanel">
+    <div class="chat-header" id="chatHeader" style="display: none;">
+        <img class="chat-header-avatar" id="chatAvatar" src="" alt="Avatar">
+        <div>
+            <h3 id="chatNombre">Selecciona un chat</h3>
+            <p id="chatStatus" style="font-size: 12px;">Selecciona un contacto</p>
+        </div>
+    </div>
+    <div class="messages" id="messages">
+        <div class="empty">💬 Selecciona un contacto para empezar</div>
+    </div>
+    <div class="input-area" id="inputArea" style="display: none;">
+        <input type="text" id="messageInput" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') enviarMensaje()">
+        <button onclick="enviarMensaje()">Enviar</button>
+    </div>
+</div>
+
+<div id="perfilModal" class="modal">
+    <div class="modal-content">
+        <h3>👤 Mi Perfil</h3>
+        <div id="avatarSelector" class="avatar-grid"></div>
+        <input type="text" id="editNombre" placeholder="Nombre">
+        <select id="editFondo">
+            <option value="#ECF5FF">Claro</option>
+            <option value="#1a1a2e">Oscuro</option>
+            <option value="#FFF3E0">Beige</option>
+        </select>
+        <button onclick="guardarPerfil()">Guardar</button>
+        <button onclick="cerrarModalPerfil()">Cancelar</button>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, where, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyC4-_JQsS625vRMkmM4PeVupxX97FVBe5U",
+    authDomain: "zajoma-8553f.firebaseapp.com",
+    projectId: "zajoma-8553f",
+    storageBucket: "zajoma-8553f.firebasestorage.app",
+    messagingSenderId: "390203043975",
+    appId: "1:390203043975:web:fe5e2f618ee285ce3bc822"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let usuarioActual = null;
+let chatActivo = null;
+let unsubscribeMessages = null;
+let avatarSeleccionado = 0;
+
+// Generar lista de avatares (avatar1.png al avatar29.png)
+const avatares = [];
+for (let i = 1; i <= 29; i++) {
+    avatares.push({
+        img: `avatars/avatar${i}.png`,
+        color: "#" + Math.floor(Math.random()*16777215).toString(16)
+    });
+}
+
+function cargarAvatares(selectedImg) {
+    const container = document.getElementById('avatarSelector');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    for (let i = 0; i < avatares.length; i++) {
+        const a = avatares[i];
+        const img = document.createElement('img');
+        img.src = a.img;
+        img.className = 'avatar-option';
+        if (a.img === selectedImg) img.classList.add('selected');
+        img.onclick = (function(idx) { return function() { seleccionarAvatar(idx); }; })(i);
+        img.onerror = function() {
+            this.style.background = '#ccc';
+            this.style.display = 'flex';
+            this.style.alignItems = 'center';
+            this.style.justifyContent = 'center';
+            this.style.fontSize = '20px';
+            this.innerText = '?';
+        };
+        container.appendChild(img);
+    }
+}
+
+window.seleccionarAvatar = (idx) => {
+    avatarSeleccionado = idx;
+    document.querySelectorAll('.avatar-option').forEach((el, i) => {
+        if (i === idx) el.classList.add('selected');
+        else el.classList.remove('selected');
+    });
+};
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    usuarioActual = user;
+    
+    await updateDoc(doc(db, 'usuarios', user.uid), {
+        online: true,
+        ultimaConexion: new Date().toISOString()
+    }).catch(async () => {
+        await setDoc(doc(db, 'usuarios', user.uid), {
+            nombre: user.email.split('@')[0],
+            email: user.email,
+            uid: user.uid,
+            avatarImg: avatares[0].img,
+            avatarColor: avatares[0].color,
+            online: true,
+            fondoChat: '#ECF5FF'
+        });
+    });
+    
+    const userDoc = await getDoc(doc(db, 'usuarios', user.uid));
+    const userData = userDoc.data();
+    const nombre = userData?.nombre || user.email.split('@')[0];
+    const avatarImg = userData?.avatarImg || avatares[0].img;
+    const fondoChat = userData?.fondoChat || '#ECF5FF';
+    
+    document.getElementById('userName').innerHTML = nombre;
+    document.getElementById('userAvatar').src = avatarImg;
+    document.getElementById('chatPanel').style.background = fondoChat;
+    
+    await cargarContactos();
+    
+    window.addEventListener('beforeunload', () => {
+        updateDoc(doc(db, 'usuarios', usuarioActual.uid), { online: false });
+    });
+});
+
+async function cargarContactos() {
+    const snapshot = await getDocs(collection(db, 'usuarios'));
+    const contactos = [];
+    
+    snapshot.forEach(doc => {
+        if (doc.id !== usuarioActual.uid) {
+            contactos.push({
+                uid: doc.id,
+                nombre: doc.data().nombre,
+                online: doc.data().online || false,
+                avatarImg: doc.data().avatarImg || avatares[0].img
+            });
+        }
+    });
+    
+    mostrarContactos(contactos);
+}
+
+function mostrarContactos(contactos) {
+    const container = document.getElementById('contactsList');
+    if (contactos.length === 0) {
+        container.innerHTML = '<div style="padding: 20px; text-align: center;">No hay contactos</div>';
+        return;
+    }
+    
+    container.innerHTML = contactos.map(c => `
+        <div class="contact" onclick="seleccionarChat('${c.uid}', '${c.nombre}')">
+            <img class="contact-avatar" src="${c.avatarImg}">
+            <div class="contact-info">
+                <div class="contact-name">${c.nombre}</div>
+                <div class="contact-status">${c.online ? '🟢 En línea' : '⚫ Desconectado'}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+window.seleccionarChat = async function(uid, nombre) {
+    if (unsubscribeMessages) unsubscribeMessages();
+    chatActivo = uid;
+    
+    document.getElementById('chatHeader').style.display = 'flex';
+    document.getElementById('inputArea').style.display = 'flex';
+    document.getElementById('chatNombre').innerHTML = nombre;
+    
+    const contactoDoc = await getDoc(doc(db, 'usuarios', uid));
+    const contactoData = contactoDoc.data();
+    const estado = contactoData?.online ? '🟢 En línea' : '⚫ Desconectado';
+    document.getElementById('chatStatus').innerHTML = estado;
+    document.getElementById('chatAvatar').src = contactoData?.avatarImg || avatares[0].img;
+    
+    document.getElementById('messages').innerHTML = '';
+    
+    const chatId = [usuarioActual.uid, uid].sort().join('_');
+    const q = query(collection(db, 'mensajes'), where('chatId', '==', chatId), orderBy('fecha', 'asc'));
+    
+    unsubscribeMessages = onSnapshot(q, (snapshot) => {
+        const mensajes = [];
+        snapshot.forEach(doc => {
+            mensajes.push({ id: doc.id, ...doc.data() });
+        });
+        mostrarMensajes(mensajes);
+    });
+};
+
+function mostrarMensajes(mensajes) {
+    const container = document.getElementById('messages');
+    
+    if (mensajes.length === 0) {
+        container.innerHTML = '<div class="empty">💬 No hay mensajes aún. ¡Envía el primero!</div>';
+        return;
+    }
+    
+    container.innerHTML = mensajes.map(msg => `
+        <div class="message ${msg.emisor === usuarioActual.uid ? 'sent' : 'received'}">
+            <strong>${msg.emisor === usuarioActual.uid ? 'Tú' : msg.nombre}:</strong><br>
+            ${msg.texto}
+            <div style="font-size: 10px; opacity: 0.6;">${new Date(msg.fecha).toLocaleTimeString()}</div>
+        </div>
+    `).join('');
+    
+    container.scrollTop = container.scrollHeight;
+}
+
+window.enviarMensaje = async function() {
+    const input = document.getElementById('messageInput');
+    const texto = input.value.trim();
+    
+    if (!texto || !chatActivo) return;
+    
+    const userDoc = await getDoc(doc(db, 'usuarios', usuarioActual.uid));
+    const nombre = userDoc.data()?.nombre || usuarioActual.email.split('@')[0];
+    const chatId = [usuarioActual.uid, chatActivo].sort().join('_');
+    
+    const mensaje = {
+        chatId: chatId,
+        emisor: usuarioActual.uid,
+        receptor: chatActivo,
+        nombre: nombre,
+        texto: texto,
+        fecha: Date.now(),
+        leido: false
+    };
+    
+    await addDoc(collection(db, 'mensajes'), mensaje);
+    input.value = '';
+};
+
+window.abrirModalPerfil = async () => {
+    const userDoc = await getDoc(doc(db, 'usuarios', usuarioActual.uid));
+    const data = userDoc.data();
+    document.getElementById('editNombre').value = data?.nombre || '';
+    document.getElementById('editFondo').value = data?.fondoChat || '#ECF5FF';
+    const avatarActual = data?.avatarImg || avatares[0].img;
+    cargarAvatares(avatarActual);
+    document.getElementById('perfilModal').style.display = 'flex';
+};
+
+window.cerrarModalPerfil = () => {
+    document.getElementById('perfilModal').style.display = 'none';
+};
+
+window.guardarPerfil = async () => {
+    const nombre = document.getElementById('editNombre').value;
+    const fondo = document.getElementById('editFondo').value;
+    const avatar = avatares[avatarSeleccionado];
+    
+    await updateDoc(doc(db, 'usuarios', usuarioActual.uid), {
+        nombre: nombre,
+        fondoChat: fondo,
+        avatarImg: avatar.img,
+        avatarColor: avatar.color
+    });
+    
+    document.getElementById('userName').innerHTML = nombre;
+    document.getElementById('userAvatar').src = avatar.img;
+    document.getElementById('chatPanel').style.background = fondo;
+    
+    cerrarModalPerfil();
+    await cargarContactos();
+};
+
+window.cerrarSesion = async () => {
+    await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { online: false });
+    await signOut(auth);
+    window.location.href = 'index.html';
+};
+</script>
+</body>
+</html>
