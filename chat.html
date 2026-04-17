@@ -2,13 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Zajoma Chat</title>
-    <!-- PWA manifest -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#2E75B6">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Zajoma">
     <style>
         * {
             margin: 0;
@@ -20,14 +15,36 @@
             background: #4A90E2;
             height: 100vh;
             display: flex;
+            overflow: hidden;
         }
+        
+        /* ========== PANEL DE CONTACTOS ========== */
         .contacts {
-            width: 320px;
+            width: 280px;
             background: #D6E6F5;
             border-right: 1px solid #B8D0E8;
             display: flex;
             flex-direction: column;
+            transition: transform 0.3s ease;
         }
+        
+        /* Modo móvil: panel oculto por defecto */
+        @media (max-width: 768px) {
+            .contacts {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100%;
+                z-index: 100;
+                transform: translateX(-100%);
+                width: 280px;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+            }
+            .contacts.open {
+                transform: translateX(0);
+            }
+        }
+        
         .user-header {
             padding: 15px;
             background: #2E75B6;
@@ -70,6 +87,7 @@
         }
         .contact-name {
             font-weight: bold;
+            font-size: 14px;
         }
         .contact-status {
             font-size: 11px;
@@ -99,27 +117,60 @@
             background: #E8F0FE;
             cursor: pointer;
             color: red;
+            font-weight: bold;
         }
+        
+        /* ========== ÁREA DE CHAT ========== */
         .chat-area {
             flex: 1;
             display: flex;
             flex-direction: column;
             background: var(--chat-bg, #ECF5FF);
+            width: 100%;
         }
+        
+        /* Header del chat */
         .chat-header {
-            padding: 15px;
+            padding: 12px 15px;
             background: #D6E6F5;
             border-bottom: 1px solid #B8D0E8;
             display: flex;
             align-items: center;
             gap: 12px;
         }
+        .menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #2E75B6;
+            padding: 5px;
+        }
+        @media (max-width: 768px) {
+            .menu-btn {
+                display: block;
+            }
+        }
         .chat-header-avatar {
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             object-fit: cover;
         }
+        .chat-header-info {
+            flex: 1;
+        }
+        .chat-header-info h3 {
+            font-size: 16px;
+            color: #1A3A5C;
+        }
+        .chat-header-info p {
+            font-size: 11px;
+            color: #4A90E2;
+        }
+        
+        /* Mensajes */
         .messages {
             flex: 1;
             overflow-y: auto;
@@ -129,11 +180,12 @@
             gap: 8px;
         }
         .message {
-            max-width: 70%;
+            max-width: 80%;
             padding: 10px 14px;
             border-radius: 18px;
             font-size: 14px;
             line-height: 1.4;
+            word-wrap: break-word;
         }
         .message.sent {
             background: #2E75B6;
@@ -149,7 +201,7 @@
             border: 1px solid #ccc;
         }
         .message-time {
-            font-size: 10px;
+            font-size: 9px;
             opacity: 0.7;
             margin-top: 5px;
             display: flex;
@@ -158,7 +210,7 @@
             justify-content: flex-end;
         }
         .message-status {
-            font-size: 12px;
+            font-size: 11px;
         }
         .message-status.read {
             color: #4CAF50;
@@ -167,22 +219,25 @@
             color: #aaa;
         }
         
+        /* Emojis y input */
         .emoji-bar {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             padding: 8px 12px;
             background: #E8F0FE;
             border-top: 1px solid #B8D0E8;
             overflow-x: auto;
+            white-space: nowrap;
         }
         .emoji-bar button {
             background: white;
             border: 1px solid #ccc;
             border-radius: 30px;
-            padding: 8px 14px;
+            padding: 6px 12px;
             cursor: pointer;
-            font-size: 20px;
+            font-size: 18px;
             transition: all 0.2s;
+            flex-shrink: 0;
         }
         .emoji-bar button:hover {
             background: #C8DDF5;
@@ -190,26 +245,28 @@
         }
         .input-area {
             display: flex;
-            padding: 12px;
+            padding: 10px 12px;
             background: #D6E6F5;
             gap: 8px;
         }
         .input-area input {
             flex: 1;
-            padding: 12px 15px;
+            padding: 10px 15px;
             border-radius: 25px;
             border: 1px solid #ccc;
             outline: none;
             font-size: 14px;
+            background: white;
         }
         .input-area button {
-            padding: 10px 20px;
+            padding: 10px 18px;
             background: #2E75B6;
             color: white;
             border: none;
             border-radius: 25px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
+            font-weight: bold;
         }
         
         .empty {
@@ -217,6 +274,8 @@
             color: #888;
             margin-top: 50px;
         }
+        
+        /* Modal de perfil */
         .modal {
             display: none;
             position: fixed;
@@ -232,7 +291,8 @@
         .modal-content {
             background: white;
             border-radius: 12px;
-            width: 400px;
+            width: 90%;
+            max-width: 350px;
             padding: 20px;
             text-align: center;
         }
@@ -240,6 +300,8 @@
             width: 100%;
             padding: 10px;
             margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
         }
         .modal-content button {
             padding: 10px 20px;
@@ -252,16 +314,16 @@
         }
         .avatar-grid {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 8px;
             margin: 15px 0;
-            max-height: 280px;
+            max-height: 250px;
             overflow-y: auto;
             padding: 5px;
         }
         .avatar-option {
-            width: 50px;
-            height: 50px;
+            width: 55px;
+            height: 55px;
             border-radius: 50%;
             cursor: pointer;
             border: 3px solid transparent;
@@ -273,57 +335,24 @@
             transform: scale(1.05);
         }
         
-        /* Botón de instalación - SIEMPRE VISIBLE */
-        .install-btn-container {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            text-align: center;
+        /* Scrollbar */
+        .contacts-list::-webkit-scrollbar,
+        .messages::-webkit-scrollbar {
+            width: 5px;
         }
-        .install-btn {
-            background: #2E75B6;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .contacts-list::-webkit-scrollbar-track,
+        .messages::-webkit-scrollbar-track {
+            background: #D6E6F5;
         }
-        .install-instructions {
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-size: 12px;
-            margin-top: 10px;
-            display: none;
-            text-align: center;
-        }
-        .install-instructions.show {
-            display: block;
-        }
-        
-        @media (max-width: 768px) {
-            .emoji-bar button {
-                font-size: 18px;
-                padding: 6px 12px;
-            }
-            .install-btn {
-                padding: 10px 20px;
-                font-size: 12px;
-            }
+        .contacts-list::-webkit-scrollbar-thumb,
+        .messages::-webkit-scrollbar-thumb {
+            background: #4A90E2;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
-<div class="contacts">
+<div class="contacts" id="contactsPanel">
     <div class="user-header" onclick="abrirModalPerfil()">
         <img class="user-avatar" id="userAvatar" src="" alt="Avatar">
         <span id="userName">Cargando...</span>
@@ -336,10 +365,11 @@
 
 <div class="chat-area" id="chatPanel">
     <div class="chat-header" id="chatHeader" style="display: none;">
+        <button class="menu-btn" onclick="toggleMenu()">☰</button>
         <img class="chat-header-avatar" id="chatAvatar" src="" alt="Avatar">
-        <div>
+        <div class="chat-header-info">
             <h3 id="chatNombre">Selecciona un chat</h3>
-            <p id="chatStatus" style="font-size: 12px;">Selecciona un contacto</p>
+            <p id="chatStatus">Selecciona un contacto</p>
         </div>
     </div>
     <div class="messages" id="messages">
@@ -368,17 +398,6 @@
     <div class="input-area" id="inputArea" style="display: none;">
         <input type="text" id="messageInput" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') enviarMensaje()">
         <button onclick="enviarMensaje()">Enviar</button>
-    </div>
-</div>
-
-<!-- Botón de instalación - SIEMPRE VISIBLE -->
-<div class="install-btn-container">
-    <button class="install-btn" id="installBtn">
-        📲 Instalar App en tu teléfono
-    </button>
-    <div id="installInstructions" class="install-instructions">
-        📱 En iPhone: Compartir → "Añadir a pantalla de inicio"<br>
-        🤖 En Android: Toca el botón de arriba
     </div>
 </div>
 
@@ -594,9 +613,19 @@ function mostrarContactos(contactos) {
     }).join('');
 }
 
+window.toggleMenu = function() {
+    const panel = document.getElementById('contactsPanel');
+    panel.classList.toggle('open');
+};
+
 window.seleccionarChat = async function(uid, nombre) {
     if (unsubscribeMessages) unsubscribeMessages();
     chatActivo = uid;
+    
+    // Cerrar menú en móvil
+    if (window.innerWidth <= 768) {
+        document.getElementById('contactsPanel').classList.remove('open');
+    }
     
     if (mensajesNoLeidos[uid]) {
         delete mensajesNoLeidos[uid];
@@ -731,30 +760,6 @@ window.cerrarSesion = async () => {
     await signOut(auth);
     window.location.href = 'index.html';
 };
-
-// ========== REGISTRAR SERVICE WORKER (PWA) ==========
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('Service Worker registrado', reg))
-        .catch(err => console.log('Error al registrar SW:', err));
-}
-
-// ========== BOTÓN DE INSTALACIÓN ==========
-document.getElementById('installBtn').addEventListener('click', () => {
-    const instructions = document.getElementById('installInstructions');
-    instructions.classList.toggle('show');
-    
-    // Ocultar después de 5 segundos
-    setTimeout(() => {
-        instructions.classList.remove('show');
-    }, 5000);
-});
-
-// Mostrar instrucciones para iOS
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-if (isIOS) {
-    document.getElementById('installBtn').innerHTML = '📱 Instalar App (iOS)';
-}
 </script>
 </body>
 </html>
