@@ -5,151 +5,122 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Zajoma Chat</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: 'Segoe UI', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: #4A90E2;
             height: 100vh;
             display: flex;
+            flex-direction: column;
             overflow: hidden;
         }
         
-        /* ========== PANEL DE CONTACTOS ========== */
-        .contacts {
-            width: 280px;
-            background: #D6E6F5;
-            border-right: 1px solid #B8D0E8;
+        .contacts-screen {
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease;
-            z-index: 200;
+            height: 100%;
         }
         
-        /* Modo móvil: panel oculto por defecto */
-        @media (max-width: 768px) {
-            .contacts {
-                position: fixed;
-                left: 0;
-                top: 0;
-                height: 100%;
-                z-index: 200;
-                transform: translateX(-100%);
-                width: 280px;
-                box-shadow: 2px 0 10px rgba(0,0,0,0.2);
-            }
-            .contacts.open {
-                transform: translateX(0);
-            }
-        }
-        
-        .user-header {
-            padding: 15px;
+        .app-header {
             background: #2E75B6;
-            color: white;
+            padding: 15px 16px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: space-between;
+            color: white;
+        }
+        .app-header h2 { font-size: 18px; }
+        .header-buttons { display: flex; gap: 15px; }
+        .header-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
             cursor: pointer;
+            padding: 5px;
         }
-        .user-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
+        
         .contacts-list {
             flex: 1;
             overflow-y: auto;
+            background: #ECF5FF;
+            padding: 8px;
         }
         .contact {
-            padding: 12px;
-            cursor: pointer;
-            border-bottom: 1px solid #B8D0E8;
+            padding: 14px 16px;
             display: flex;
             align-items: center;
             gap: 12px;
+            background: white;
+            margin: 4px 0;
+            border-radius: 12px;
+            cursor: pointer;
             position: relative;
+            transition: background 0.2s;
         }
-        .contact:hover {
-            background: #C8DDF5;
-        }
+        .contact:active { background: #E8F0FE; }
         .contact-avatar {
-            width: 45px;
-            height: 45px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             object-fit: cover;
         }
-        .contact-info {
-            flex: 1;
-        }
-        .contact-name {
-            font-weight: bold;
-            font-size: 14px;
-        }
-        .contact-status {
-            font-size: 11px;
-            color: #555;
-        }
+        .contact-info { flex: 1; }
+        .contact-name { font-weight: bold; font-size: 16px; color: #1A3A5C; }
+        .contact-status { font-size: 12px; color: #666; margin-top: 3px; }
         .unread-badge {
-            position: absolute;
-            top: 5px;
-            left: 38px;
-            background-color: #e63946;
+            background: #e63946;
             color: white;
             border-radius: 50%;
-            min-width: 18px;
-            height: 18px;
-            font-size: 10px;
-            font-weight: bold;
+            min-width: 20px;
+            height: 20px;
+            font-size: 11px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0 4px;
-            border: 1px solid white;
-            z-index: 10;
+            padding: 0 5px;
+            position: absolute;
+            top: 10px;
+            right: 15px;
         }
-        .logout-btn {
+        
+        .logout-footer {
             padding: 12px;
             text-align: center;
             background: #E8F0FE;
-            cursor: pointer;
+        }
+        .logout-btn {
+            background: none;
+            border: none;
             color: red;
             font-weight: bold;
-        }
-        
-        /* ========== ÁREA DE CHAT ========== */
-        .chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: var(--chat-bg, #ECF5FF);
+            font-size: 16px;
             width: 100%;
+            cursor: pointer;
         }
         
-        /* Header del chat - SIEMPRE VISIBLE */
+        .chat-screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            background: #ECF5FF;
+        }
         .chat-header {
-            padding: 12px 15px;
-            background: #D6E6F5;
-            border-bottom: 1px solid #B8D0E8;
+            background: #2E75B6;
+            padding: 12px 16px;
             display: flex;
             align-items: center;
             gap: 12px;
+            color: white;
         }
-        .menu-btn {
+        .back-btn {
             background: none;
             border: none;
+            color: white;
             font-size: 28px;
             cursor: pointer;
-            color: #2E75B6;
-            padding: 5px 10px;
-            border-radius: 8px;
-        }
-        .menu-btn:hover {
-            background: #C8DDF5;
+            padding: 5px;
         }
         .chat-header-avatar {
             width: 40px;
@@ -157,19 +128,10 @@
             border-radius: 50%;
             object-fit: cover;
         }
-        .chat-header-info {
-            flex: 1;
-        }
-        .chat-header-info h3 {
-            font-size: 16px;
-            color: #1A3A5C;
-        }
-        .chat-header-info p {
-            font-size: 11px;
-            color: #4A90E2;
-        }
+        .chat-header-info { flex: 1; }
+        .chat-header-info h3 { font-size: 16px; }
+        .chat-header-info p { font-size: 11px; opacity: 0.8; }
         
-        /* Mensajes */
         .messages {
             flex: 1;
             overflow-y: auto;
@@ -183,7 +145,6 @@
             padding: 10px 14px;
             border-radius: 18px;
             font-size: 14px;
-            line-height: 1.4;
             word-wrap: break-word;
         }
         .message.sent {
@@ -197,50 +158,30 @@
             color: black;
             align-self: flex-start;
             border-bottom-left-radius: 4px;
-            border: 1px solid #ccc;
+            border: 1px solid #ddd;
         }
         .message-time {
             font-size: 9px;
             opacity: 0.7;
             margin-top: 5px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            justify-content: flex-end;
-        }
-        .message-status {
-            font-size: 11px;
-        }
-        .message-status.read {
-            color: #4CAF50;
-        }
-        .message-status.delivered {
-            color: #aaa;
+            text-align: right;
         }
         
-        /* Emojis y input */
         .emoji-bar {
             display: flex;
             gap: 6px;
             padding: 8px 12px;
             background: #E8F0FE;
-            border-top: 1px solid #B8D0E8;
+            border-top: 1px solid #ccc;
             overflow-x: auto;
-            white-space: nowrap;
         }
         .emoji-bar button {
             background: white;
             border: 1px solid #ccc;
             border-radius: 30px;
-            padding: 6px 12px;
+            padding: 8px 14px;
             cursor: pointer;
-            font-size: 18px;
-            transition: all 0.2s;
-            flex-shrink: 0;
-        }
-        .emoji-bar button:hover {
-            background: #C8DDF5;
-            transform: scale(1.05);
+            font-size: 20px;
         }
         .input-area {
             display: flex;
@@ -250,31 +191,39 @@
         }
         .input-area input {
             flex: 1;
-            padding: 10px 15px;
+            padding: 12px;
             border-radius: 25px;
             border: 1px solid #ccc;
             outline: none;
-            font-size: 14px;
+            font-size: 16px;
             background: white;
         }
         .input-area button {
-            padding: 10px 18px;
+            padding: 12px 20px;
             background: #2E75B6;
             color: white;
             border: none;
             border-radius: 25px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: bold;
         }
         
-        .empty {
-            text-align: center;
-            color: #888;
-            margin-top: 50px;
+        .empty { text-align: center; color: #888; padding: 40px; }
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 12px;
+            z-index: 200;
+            display: none;
         }
         
-        /* Modal de perfil */
         .modal {
             display: none;
             position: fixed;
@@ -289,7 +238,7 @@
         }
         .modal-content {
             background: white;
-            border-radius: 12px;
+            border-radius: 16px;
             width: 90%;
             max-width: 350px;
             padding: 20px;
@@ -305,11 +254,11 @@
         .modal-content button {
             padding: 10px 20px;
             margin: 5px;
-            cursor: pointer;
             background: #2E75B6;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
+            cursor: pointer;
         }
         .avatar-grid {
             display: grid;
@@ -318,7 +267,6 @@
             margin: 15px 0;
             max-height: 250px;
             overflow-y: auto;
-            padding: 5px;
         }
         .avatar-option {
             width: 55px;
@@ -326,100 +274,66 @@
             border-radius: 50%;
             cursor: pointer;
             border: 3px solid transparent;
-            transition: all 0.2s;
             object-fit: cover;
         }
-        .avatar-option.selected {
-            border-color: #2E75B6;
-            transform: scale(1.05);
-        }
-        
-        /* Scrollbar */
-        .contacts-list::-webkit-scrollbar,
-        .messages::-webkit-scrollbar {
-            width: 5px;
-        }
-        .contacts-list::-webkit-scrollbar-track,
-        .messages::-webkit-scrollbar-track {
-            background: #D6E6F5;
-        }
-        .contacts-list::-webkit-scrollbar-thumb,
-        .messages::-webkit-scrollbar-thumb {
-            background: #4A90E2;
-            border-radius: 5px;
-        }
-        
-        /* Overlay para cerrar menú al tocar fuera */
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.3);
-            z-index: 150;
-        }
-        .overlay.show {
-            display: block;
-        }
+        .avatar-option.selected { border-color: #2E75B6; }
     </style>
 </head>
 <body>
 
-<!-- Overlay para cerrar menú -->
-<div id="overlay" class="overlay" onclick="toggleMenu()"></div>
-
-<!-- Panel de contactos -->
-<div class="contacts" id="contactsPanel">
-    <div class="user-header" onclick="abrirModalPerfil()">
-        <img class="user-avatar" id="userAvatar" src="" alt="Avatar">
-        <span id="userName">Cargando...</span>
+<div id="contactsScreen" class="contacts-screen">
+    <div class="app-header">
+        <h2>💬 Zajoma Chat</h2>
+        <div class="header-buttons">
+            <button class="header-btn" id="refreshBtn">🔄</button>
+            <button class="header-btn" id="profileBtn">👤</button>
+        </div>
     </div>
     <div class="contacts-list" id="contactsList">
-        <div style="padding: 20px; text-align: center;">Cargando contactos...</div>
+        <div class="empty">Cargando contactos...</div>
     </div>
-    <div class="logout-btn" onclick="cerrarSesion()">🚪 Cerrar sesión</div>
+    <div class="logout-footer">
+        <button class="logout-btn" id="logoutBtn">🚪 Cerrar sesión</button>
+    </div>
 </div>
 
-<!-- Área de chat -->
-<div class="chat-area" id="chatPanel">
+<div id="chatScreen" class="chat-screen">
     <div class="chat-header">
-        <button class="menu-btn" onclick="toggleMenu()">☰</button>
-        <img class="chat-header-avatar" id="chatAvatar" src="" alt="Avatar">
+        <button class="back-btn" id="backBtn">←</button>
+        <img class="chat-header-avatar" id="chatAvatar" src="">
         <div class="chat-header-info">
-            <h3 id="chatNombre">Selecciona un chat</h3>
-            <p id="chatStatus">Toca ☰ para ver contactos</p>
+            <h3 id="chatNombre">...</h3>
+            <p id="chatStatus">...</p>
         </div>
     </div>
     <div class="messages" id="messages">
-        <div class="empty">💬 Selecciona un contacto para empezar</div>
+        <div class="empty">💬 No hay mensajes aún</div>
     </div>
-    
     <div class="emoji-bar">
-        <button onclick="insertarEmoji('😊')">😊</button>
-        <button onclick="insertarEmoji('😂')">😂</button>
-        <button onclick="insertarEmoji('❤️')">❤️</button>
-        <button onclick="insertarEmoji('😍')">😍</button>
-        <button onclick="insertarEmoji('👍')">👍</button>
-        <button onclick="insertarEmoji('🎉')">🎉</button>
-        <button onclick="insertarEmoji('😭')">😭</button>
-        <button onclick="insertarEmoji('😎')">😎</button>
-        <button onclick="insertarEmoji('🤔')">🤔</button>
-        <button onclick="insertarEmoji('😡')">😡</button>
-        <button onclick="insertarEmoji('🥺')">🥺</button>
-        <button onclick="insertarEmoji('💀')">💀</button>
-        <button onclick="insertarEmoji('🔥')">🔥</button>
-        <button onclick="insertarEmoji('✨')">✨</button>
-        <button onclick="insertarEmoji('⭐')">⭐</button>
-        <button onclick="insertarEmoji('💯')">💯</button>
+        <button data-emoji="😊">😊</button>
+        <button data-emoji="😂">😂</button>
+        <button data-emoji="❤️">❤️</button>
+        <button data-emoji="😍">😍</button>
+        <button data-emoji="👍">👍</button>
+        <button data-emoji="🎉">🎉</button>
+        <button data-emoji="😭">😭</button>
+        <button data-emoji="😎">😎</button>
+        <button data-emoji="🤔">🤔</button>
+        <button data-emoji="😡">😡</button>
+        <button data-emoji="🥺">🥺</button>
+        <button data-emoji="💀">💀</button>
+        <button data-emoji="🔥">🔥</button>
+        <button data-emoji="✨">✨</button>
+        <button data-emoji="⭐">⭐</button>
+        <button data-emoji="💯">💯</button>
     </div>
-    
-    <div class="input-area" id="inputArea">
-        <input type="text" id="messageInput" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') enviarMensaje()">
-        <button onclick="enviarMensaje()">Enviar</button>
+    <div class="input-area">
+        <input type="text" id="messageInput" placeholder="Escribe un mensaje...">
+        <button id="sendBtn">Enviar</button>
     </div>
 </div>
+
+<div id="toast" class="toast">🔄 Contactos actualizados</div>
 
 <div id="perfilModal" class="modal">
     <div class="modal-content">
@@ -429,10 +343,9 @@
         <select id="editFondo">
             <option value="#ECF5FF">Claro</option>
             <option value="#1a1a2e">Oscuro</option>
-            <option value="#FFF3E0">Beige</option>
         </select>
-        <button onclick="guardarPerfil()">Guardar</button>
-        <button onclick="cerrarModalPerfil()">Cancelar</button>
+        <button id="guardarPerfilBtn">Guardar</button>
+        <button id="cerrarModalBtn">Cancelar</button>
     </div>
 </div>
 
@@ -464,17 +377,13 @@ let contactosCache = [];
 
 const avatares = [];
 for (let i = 1; i <= 29; i++) {
-    avatares.push({
-        img: `avatars/avatar${i}.png`,
-        color: "#" + Math.floor(Math.random()*16777215).toString(16)
-    });
+    avatares.push({ img: `avatars/avatar${i}.png`, color: "#" + Math.floor(Math.random()*16777215).toString(16) });
 }
 
 function cargarAvatares(selectedImg) {
     const container = document.getElementById('avatarSelector');
     if (!container) return;
     container.innerHTML = '';
-    
     for (let i = 0; i < avatares.length; i++) {
         const a = avatares[i];
         const img = document.createElement('img');
@@ -482,36 +391,26 @@ function cargarAvatares(selectedImg) {
         img.className = 'avatar-option';
         if (a.img === selectedImg) img.classList.add('selected');
         img.onclick = (function(idx) { return function() { seleccionarAvatar(idx); }; })(i);
-        img.onerror = function() {
-            this.style.background = '#ccc';
-            this.style.display = 'flex';
-            this.style.alignItems = 'center';
-            this.style.justifyContent = 'center';
-            this.style.fontSize = '20px';
-            this.innerText = '?';
-        };
         container.appendChild(img);
     }
 }
 
-window.seleccionarAvatar = (idx) => {
+function seleccionarAvatar(idx) {
     avatarSeleccionado = idx;
     document.querySelectorAll('.avatar-option').forEach((el, i) => {
         if (i === idx) el.classList.add('selected');
         else el.classList.remove('selected');
     });
-};
+}
 
 async function marcarComoLeidos(contactoUid) {
     if (!contactoUid) return;
     const chatId = [usuarioActual.uid, contactoUid].sort().join('_');
     const q = query(collection(db, 'mensajes'), where('chatId', '==', chatId), where('emisor', '==', contactoUid), where('leido', '==', false));
     const snapshot = await getDocs(q);
-    const updates = [];
-    snapshot.forEach((docSnap) => {
-        updates.push(updateDoc(doc(db, 'mensajes', docSnap.id), { leido: true }));
+    snapshot.forEach(async (docSnap) => {
+        await updateDoc(doc(db, 'mensajes', docSnap.id), { leido: true });
     });
-    await Promise.all(updates);
 }
 
 function actualizarTodosLosBadges() {
@@ -527,10 +426,10 @@ function actualizarTodosLosBadges() {
                     const badge = document.createElement('div');
                     badge.className = 'unread-badge';
                     badge.textContent = noLeidos;
-                    contactoDiv.insertBefore(badge, contactoDiv.firstChild);
+                    contactoDiv.appendChild(badge);
                 }
-            } else {
-                if (badgeExistente) badgeExistente.remove();
+            } else if (badgeExistente) {
+                badgeExistente.remove();
             }
         }
     });
@@ -553,44 +452,20 @@ function iniciarListenerGlobal() {
 }
 
 onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        window.location.href = 'index.html';
-        return;
-    }
-    
+    if (!user) { window.location.href = 'index.html'; return; }
     usuarioActual = user;
-    
-    await updateDoc(doc(db, 'usuarios', user.uid), {
-        online: true,
-        ultimaConexion: new Date().toISOString()
-    }).catch(async () => {
-        await setDoc(doc(db, 'usuarios', user.uid), {
-            nombre: user.email.split('@')[0],
-            email: user.email,
-            uid: user.uid,
-            avatarImg: avatares[0].img,
-            avatarColor: avatares[0].color,
-            online: true,
-            fondoChat: '#ECF5FF'
+    const userRef = doc(db, 'usuarios', user.uid);
+    const userDoc = await getDoc(userRef);
+    if (!userDoc.exists()) {
+        await setDoc(userRef, {
+            nombre: user.email.split('@')[0], email: user.email, uid: user.uid,
+            avatarImg: avatares[0].img, avatarColor: avatares[0].color, online: true, fondoChat: '#ECF5FF'
         });
-    });
-    
-    const userDoc = await getDoc(doc(db, 'usuarios', user.uid));
-    const userData = userDoc.data();
-    const nombre = userData?.nombre || user.email.split('@')[0];
-    const avatarImg = userData?.avatarImg || avatares[0].img;
-    const fondoChat = userData?.fondoChat || '#ECF5FF';
-    
-    document.getElementById('userName').innerHTML = nombre;
-    document.getElementById('userAvatar').src = avatarImg;
-    document.getElementById('chatPanel').style.background = fondoChat;
-    
+    } else {
+        await updateDoc(userRef, { online: true });
+    }
     await cargarContactos();
     iniciarListenerGlobal();
-    
-    window.addEventListener('beforeunload', () => {
-        updateDoc(doc(db, 'usuarios', usuarioActual.uid), { online: false });
-    });
 });
 
 async function cargarContactos() {
@@ -599,188 +474,162 @@ async function cargarContactos() {
     snapshot.forEach(doc => {
         if (doc.id !== usuarioActual.uid) {
             contactos.push({
-                uid: doc.id,
-                nombre: doc.data().nombre,
-                online: doc.data().online || false,
+                uid: doc.id, nombre: doc.data().nombre, online: doc.data().online || false,
                 avatarImg: doc.data().avatarImg || avatares[0].img
             });
         }
     });
     contactosCache = contactos;
-    mostrarContactos(contactos);
-}
-
-function mostrarContactos(contactos) {
     const container = document.getElementById('contactsList');
+    if (!container) return;
     if (contactos.length === 0) {
-        container.innerHTML = '<div style="padding: 20px; text-align: center;">No hay contactos</div>';
+        container.innerHTML = '<div class="empty">No hay contactos aún.<br>Comparte el enlace con amigos</div>';
         return;
     }
-    
     container.innerHTML = contactos.map(c => {
         const noLeidos = mensajesNoLeidos[c.uid] || 0;
         const badgeHtml = noLeidos > 0 ? `<div class="unread-badge">${noLeidos}</div>` : '';
         return `
-            <div class="contact" data-uid="${c.uid}" onclick="seleccionarChat('${c.uid}', '${c.nombre}')">
-                ${badgeHtml}
+            <div class="contact" data-uid="${c.uid}">
                 <img class="contact-avatar" src="${c.avatarImg}">
                 <div class="contact-info">
                     <div class="contact-name">${c.nombre}</div>
                     <div class="contact-status">${c.online ? '🟢 En línea' : '⚫ Desconectado'}</div>
                 </div>
+                ${badgeHtml}
             </div>
         `;
     }).join('');
+    document.querySelectorAll('.contact').forEach(el => {
+        el.addEventListener('click', () => {
+            const uid = el.getAttribute('data-uid');
+            const nombre = el.querySelector('.contact-name')?.innerText;
+            if (uid && nombre) abrirChat(uid, nombre);
+        });
+    });
 }
 
-window.toggleMenu = function() {
-    const panel = document.getElementById('contactsPanel');
-    const overlay = document.getElementById('overlay');
-    panel.classList.toggle('open');
-    overlay.classList.toggle('show');
-};
+async function actualizarContactos() {
+    const toast = document.getElementById('toast');
+    if (toast) toast.style.display = 'block';
+    await cargarContactos();
+    if (toast) setTimeout(() => toast.style.display = 'none', 1500);
+}
 
-window.seleccionarChat = async function(uid, nombre) {
+async function abrirChat(uid, nombre) {
     if (unsubscribeMessages) unsubscribeMessages();
     chatActivo = uid;
-    
-    // Cerrar menú en móvil
-    if (window.innerWidth <= 768) {
-        document.getElementById('contactsPanel').classList.remove('open');
-        document.getElementById('overlay').classList.remove('show');
-    }
-    
     if (mensajesNoLeidos[uid]) {
         delete mensajesNoLeidos[uid];
         actualizarTodosLosBadges();
         await marcarComoLeidos(uid);
     }
-    
-    document.getElementById('chatNombre').innerHTML = nombre;
-    
+    document.getElementById('contactsScreen').style.display = 'none';
+    document.getElementById('chatScreen').style.display = 'flex';
+    document.getElementById('chatNombre').innerText = nombre;
     const contactoDoc = await getDoc(doc(db, 'usuarios', uid));
     const contactoData = contactoDoc.data();
-    const estado = contactoData?.online ? '🟢 En línea' : '⚫ Desconectado';
-    document.getElementById('chatStatus').innerHTML = estado;
+    document.getElementById('chatStatus').innerHTML = contactoData?.online ? '🟢 En línea' : '⚫ Desconectado';
     document.getElementById('chatAvatar').src = contactoData?.avatarImg || avatares[0].img;
-    
     document.getElementById('messages').innerHTML = '';
-    
     const chatId = [usuarioActual.uid, uid].sort().join('_');
     const q = query(collection(db, 'mensajes'), where('chatId', '==', chatId), orderBy('fecha', 'asc'));
-    
     unsubscribeMessages = onSnapshot(q, (snapshot) => {
         const mensajes = [];
-        snapshot.forEach(doc => {
-            mensajes.push({ id: doc.id, ...doc.data() });
-        });
-        mostrarMensajes(mensajes);
-    });
-};
-
-function mostrarMensajes(mensajes) {
-    const container = document.getElementById('messages');
-    
-    if (mensajes.length === 0) {
-        container.innerHTML = '<div class="empty">💬 No hay mensajes aún. ¡Envía el primero!</div>';
-        return;
-    }
-    
-    container.innerHTML = mensajes.map(msg => {
-        let statusIcon = '';
-        if (msg.emisor === usuarioActual.uid) {
-            if (msg.leido) {
-                statusIcon = '<span class="message-status read">✓✓</span>';
-            } else {
-                statusIcon = '<span class="message-status delivered">✓</span>';
-            }
+        snapshot.forEach(doc => { mensajes.push({ id: doc.id, ...doc.data() }); });
+        const container = document.getElementById('messages');
+        if (!container) return;
+        if (mensajes.length === 0) {
+            container.innerHTML = '<div class="empty">💬 No hay mensajes aún. ¡Envía el primero!</div>';
+            return;
         }
-        
-        return `
-            <div class="message ${msg.emisor === usuarioActual.uid ? 'sent' : 'received'}">
-                <strong>${msg.emisor === usuarioActual.uid ? 'Tú' : msg.nombre}:</strong><br>
-                ${msg.texto}
-                <div class="message-time">
-                    ${new Date(msg.fecha).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
-                    ${statusIcon}
+        container.innerHTML = mensajes.map(msg => {
+            let statusIcon = '';
+            if (msg.emisor === usuarioActual.uid) {
+                statusIcon = msg.leido ? '<span style="color:#4CAF50;">✓✓</span>' : '<span style="color:#aaa;">✓</span>';
+            }
+            return `
+                <div class="message ${msg.emisor === usuarioActual.uid ? 'sent' : 'received'}">
+                    <strong>${msg.emisor === usuarioActual.uid ? 'Tú' : msg.nombre}:</strong><br>
+                    ${msg.texto}
+                    <div class="message-time">
+                        ${new Date(msg.fecha).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                        ${statusIcon}
+                    </div>
                 </div>
-            </div>
-        `;
-    }).join('');
-    
-    container.scrollTop = container.scrollHeight;
+            `;
+        }).join('');
+        container.scrollTop = container.scrollHeight;
+    });
 }
 
-window.insertarEmoji = function(emoji) {
-    const input = document.getElementById('messageInput');
-    input.value += emoji;
-    input.focus();
-};
-
-window.enviarMensaje = async function() {
+async function enviarMensaje() {
     const input = document.getElementById('messageInput');
     const texto = input.value.trim();
-    
     if (!texto || !chatActivo) return;
-    
     const userDoc = await getDoc(doc(db, 'usuarios', usuarioActual.uid));
     const nombre = userDoc.data()?.nombre || usuarioActual.email.split('@')[0];
     const chatId = [usuarioActual.uid, chatActivo].sort().join('_');
-    
-    const mensaje = {
-        chatId: chatId,
-        emisor: usuarioActual.uid,
-        receptor: chatActivo,
-        nombre: nombre,
-        texto: texto,
-        fecha: Date.now(),
-        leido: false
-    };
-    
-    await addDoc(collection(db, 'mensajes'), mensaje);
+    await addDoc(collection(db, 'mensajes'), {
+        chatId, emisor: usuarioActual.uid, receptor: chatActivo,
+        nombre, texto, fecha: Date.now(), leido: false
+    });
     input.value = '';
-};
+}
 
-window.abrirModalPerfil = async () => {
+function cerrarChat() {
+    document.getElementById('chatScreen').style.display = 'none';
+    document.getElementById('contactsScreen').style.display = 'flex';
+    if (unsubscribeMessages) unsubscribeMessages();
+    chatActivo = null;
+}
+
+function insertarEmoji(emoji) {
+    const input = document.getElementById('messageInput');
+    input.value += emoji;
+    input.focus();
+}
+
+async function abrirModalPerfil() {
     const userDoc = await getDoc(doc(db, 'usuarios', usuarioActual.uid));
     const data = userDoc.data();
     document.getElementById('editNombre').value = data?.nombre || '';
     document.getElementById('editFondo').value = data?.fondoChat || '#ECF5FF';
-    const avatarActual = data?.avatarImg || avatares[0].img;
-    cargarAvatares(avatarActual);
+    cargarAvatares(data?.avatarImg || avatares[0].img);
     document.getElementById('perfilModal').style.display = 'flex';
-};
+}
 
-window.cerrarModalPerfil = () => {
-    document.getElementById('perfilModal').style.display = 'none';
-};
+function cerrarModalPerfil() { document.getElementById('perfilModal').style.display = 'none'; }
 
-window.guardarPerfil = async () => {
+async function guardarPerfil() {
     const nombre = document.getElementById('editNombre').value;
     const fondo = document.getElementById('editFondo').value;
     const avatar = avatares[avatarSeleccionado];
-    
-    await updateDoc(doc(db, 'usuarios', usuarioActual.uid), {
-        nombre: nombre,
-        fondoChat: fondo,
-        avatarImg: avatar.img,
-        avatarColor: avatar.color
-    });
-    
-    document.getElementById('userName').innerHTML = nombre;
-    document.getElementById('userAvatar').src = avatar.img;
-    document.getElementById('chatPanel').style.background = fondo;
-    
+    await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { nombre, fondoChat: fondo, avatarImg: avatar.img, avatarColor: avatar.color });
     cerrarModalPerfil();
     await cargarContactos();
-};
+}
 
-window.cerrarSesion = async () => {
+async function cerrarSesion() {
     if (unsubscribeGlobal) unsubscribeGlobal();
     await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { online: false });
     await signOut(auth);
     window.location.href = 'index.html';
-};
+}
+
+document.getElementById('refreshBtn')?.addEventListener('click', actualizarContactos);
+document.getElementById('profileBtn')?.addEventListener('click', abrirModalPerfil);
+document.getElementById('logoutBtn')?.addEventListener('click', cerrarSesion);
+document.getElementById('backBtn')?.addEventListener('click', cerrarChat);
+document.getElementById('sendBtn')?.addEventListener('click', enviarMensaje);
+document.getElementById('messageInput')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarMensaje(); });
+document.getElementById('guardarPerfilBtn')?.addEventListener('click', guardarPerfil);
+document.getElementById('cerrarModalBtn')?.addEventListener('click', cerrarModalPerfil);
+document.querySelectorAll('.emoji-bar button').forEach(btn => {
+    btn.addEventListener('click', () => insertarEmoji(btn.getAttribute('data-emoji')));
+});
+
+window.seleccionarAvatar = seleccionarAvatar;
 </script>
 </body>
 </html>
