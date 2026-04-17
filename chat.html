@@ -519,7 +519,7 @@ async function registrarTokenFCM() {
 onMessage(messaging, (payload) => {
     console.log('📩 Mensaje recibido en primer plano:', payload);
     
-    // Reproducir sonido - RUTA CORREGIDA
+    // Reproducir sonido
     const audio = new Audio('/Zajoma/notification.mp3');
     audio.play().catch(e => console.log('Error al reproducir sonido:', e));
     
@@ -732,9 +732,9 @@ document.querySelectorAll('.emoji-bar button').forEach(btn => {
     btn.addEventListener('click', () => insertarEmoji(btn.getAttribute('data-emoji')));
 });
 
-// ========== REGISTRAR SERVICE WORKER ==========
+// ========== REGISTRAR SERVICE WORKER CON URL COMPLETA ==========
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/Zajoma/firebase-messaging-sw.js')
+    navigator.serviceWorker.register('https://pardurex.github.io/Zajoma/firebase-messaging-sw.js')
         .then(reg => console.log('✅ Service Worker registrado:', reg))
         .catch(err => console.log('❌ Error al registrar Service Worker:', err));
 }
