@@ -26,6 +26,7 @@
             display: flex;
             flex-direction: column;
             transition: transform 0.3s ease;
+            z-index: 200;
         }
         
         /* Modo móvil: panel oculto por defecto */
@@ -35,7 +36,7 @@
                 left: 0;
                 top: 0;
                 height: 100%;
-                z-index: 100;
+                z-index: 200;
                 transform: translateX(-100%);
                 width: 280px;
                 box-shadow: 2px 0 10px rgba(0,0,0,0.2);
@@ -129,7 +130,7 @@
             width: 100%;
         }
         
-        /* Header del chat */
+        /* Header del chat - SIEMPRE VISIBLE */
         .chat-header {
             padding: 12px 15px;
             background: #D6E6F5;
@@ -139,18 +140,16 @@
             gap: 12px;
         }
         .menu-btn {
-            display: none;
             background: none;
             border: none;
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
             color: #2E75B6;
-            padding: 5px;
+            padding: 5px 10px;
+            border-radius: 8px;
         }
-        @media (max-width: 768px) {
-            .menu-btn {
-                display: block;
-            }
+        .menu-btn:hover {
+            background: #C8DDF5;
         }
         .chat-header-avatar {
             width: 40px;
@@ -349,9 +348,29 @@
             background: #4A90E2;
             border-radius: 5px;
         }
+        
+        /* Overlay para cerrar menú al tocar fuera */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.3);
+            z-index: 150;
+        }
+        .overlay.show {
+            display: block;
+        }
     </style>
 </head>
 <body>
+
+<!-- Overlay para cerrar menú -->
+<div id="overlay" class="overlay" onclick="toggleMenu()"></div>
+
+<!-- Panel de contactos -->
 <div class="contacts" id="contactsPanel">
     <div class="user-header" onclick="abrirModalPerfil()">
         <img class="user-avatar" id="userAvatar" src="" alt="Avatar">
@@ -363,13 +382,14 @@
     <div class="logout-btn" onclick="cerrarSesion()">🚪 Cerrar sesión</div>
 </div>
 
+<!-- Área de chat -->
 <div class="chat-area" id="chatPanel">
-    <div class="chat-header" id="chatHeader" style="display: none;">
+    <div class="chat-header">
         <button class="menu-btn" onclick="toggleMenu()">☰</button>
         <img class="chat-header-avatar" id="chatAvatar" src="" alt="Avatar">
         <div class="chat-header-info">
             <h3 id="chatNombre">Selecciona un chat</h3>
-            <p id="chatStatus">Selecciona un contacto</p>
+            <p id="chatStatus">Toca ☰ para ver contactos</p>
         </div>
     </div>
     <div class="messages" id="messages">
@@ -395,7 +415,7 @@
         <button onclick="insertarEmoji('💯')">💯</button>
     </div>
     
-    <div class="input-area" id="inputArea" style="display: none;">
+    <div class="input-area" id="inputArea">
         <input type="text" id="messageInput" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') enviarMensaje()">
         <button onclick="enviarMensaje()">Enviar</button>
     </div>
@@ -615,7 +635,9 @@ function mostrarContactos(contactos) {
 
 window.toggleMenu = function() {
     const panel = document.getElementById('contactsPanel');
+    const overlay = document.getElementById('overlay');
     panel.classList.toggle('open');
+    overlay.classList.toggle('show');
 };
 
 window.seleccionarChat = async function(uid, nombre) {
@@ -625,6 +647,7 @@ window.seleccionarChat = async function(uid, nombre) {
     // Cerrar menú en móvil
     if (window.innerWidth <= 768) {
         document.getElementById('contactsPanel').classList.remove('open');
+        document.getElementById('overlay').classList.remove('show');
     }
     
     if (mensajesNoLeidos[uid]) {
@@ -633,8 +656,6 @@ window.seleccionarChat = async function(uid, nombre) {
         await marcarComoLeidos(uid);
     }
     
-    document.getElementById('chatHeader').style.display = 'flex';
-    document.getElementById('inputArea').style.display = 'flex';
     document.getElementById('chatNombre').innerHTML = nombre;
     
     const contactoDoc = await getDoc(doc(db, 'usuarios', uid));
