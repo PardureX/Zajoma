@@ -16,21 +16,21 @@ const messaging = firebase.messaging();
 // Notificación cuando la app está cerrada o en segundo plano
 messaging.onBackgroundMessage((payload) => {
   console.log('📱 Notificación en background:', payload);
-  
+
   const titulo = payload.notification?.title || '💬 ¡Tienes un nuevo mensaje!';
   const cuerpo = payload.notification?.body || 'Alguien te ha escrito';
-  
+
   const opciones = {
     body: cuerpo,
-    icon: '/avatars/avatar1.png',
-    badge: '/avatars/avatar1.png',
+    icon: '/Zajoma/avatars/avatar1.png',
+    badge: '/Zajoma/avatars/avatar1.png',
     vibrate: [200, 100, 200],
-    sound: '/notification.mp3',
+    sound: '/Zajoma/notification.mp3',
     data: {
-      url: '/chat.html'
+      url: '/Zajoma/chat.html'
     }
   };
-  
+
   self.registration.showNotification(titulo, opciones);
 });
 
@@ -38,6 +38,6 @@ messaging.onBackgroundMessage((payload) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
-    clients.openWindow('/chat.html')
+    clients.openWindow('/Zajoma/chat.html')
   );
 });
