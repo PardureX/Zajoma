@@ -519,15 +519,15 @@ async function registrarTokenFCM() {
 onMessage(messaging, (payload) => {
     console.log('📩 Mensaje recibido en primer plano:', payload);
     
-    // Reproducir sonido
-    const audio = new Audio('/notification.mp3');
+    // Reproducir sonido - RUTA CORREGIDA
+    const audio = new Audio('/Zajoma/notification.mp3');
     audio.play().catch(e => console.log('Error al reproducir sonido:', e));
     
     // Mostrar notificación
     if (Notification.permission === 'granted') {
         new Notification(payload.notification?.title || '💬 Nuevo mensaje', {
             body: payload.notification?.body || 'Alguien te ha escrito',
-            icon: '/avatars/avatar1.png'
+            icon: '/Zajoma/avatars/avatar1.png'
         });
     }
     
@@ -731,6 +731,13 @@ document.getElementById('cerrarModalBtn')?.addEventListener('click', cerrarModal
 document.querySelectorAll('.emoji-bar button').forEach(btn => {
     btn.addEventListener('click', () => insertarEmoji(btn.getAttribute('data-emoji')));
 });
+
+// ========== REGISTRAR SERVICE WORKER ==========
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/Zajoma/firebase-messaging-sw.js')
+        .then(reg => console.log('✅ Service Worker registrado:', reg))
+        .catch(err => console.log('❌ Error al registrar Service Worker:', err));
+}
 
 window.seleccionarAvatar = seleccionarAvatar;
 </script>
