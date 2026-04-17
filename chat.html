@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewfit-cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Zajoma Chat</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -38,8 +38,8 @@
         .header-buttons { 
             display: flex; 
             gap: 15px; 
+            align-items: center;
         }
-        /* Botón de perfil a la izquierda */
         .profile-btn {
             background: none;
             border: none;
@@ -379,6 +379,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, updateDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, where, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-messaging.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyC4-_JQsS625vRMkmM4PeVupxX97FVBe5U",
@@ -392,6 +393,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const messaging = getMessaging(app);
+
+// VAPID Key
+const VAPID_KEY = "BAQT2HI2RnTY_Ll1Q5CHOWdAnPECAd_O6rh3e8X0OJq7BYmnzCTnP5SnhN0PEzS2gRE_Q9yGqC0SJh-jWjQBH9M";
 
 let usuarioActual = null;
 let chatActivo = null;
@@ -477,6 +482,64 @@ function iniciarListenerGlobal() {
     });
 }
 
+// ========== NOTIFICACIONES PUSH ==========
+async function solicitarPermisoNotificaciones() {
+    if (!('Notification' in window)) {
+        console.log('Este navegador no soporta notificaciones');
+        return;
+    }
+    
+    if (Notification.permission === 'granted') {
+        await registrarTokenFCM();
+    } else if (Notification.permission !== 'denied') {
+        const permiso = await Notification.requestPermission();
+        if (permiso === 'granted') {
+            await registrarTokenFCM();
+        }
+    }
+}
+
+async function registrarTokenFCM() {
+    try {
+        const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+        console.log('✅ Token FCM:', token);
+        
+        if (usuarioActual) {
+            await updateDoc(doc(db, 'usuarios', usuarioActual.uid), {
+                fcmToken: token
+            });
+            console.log('✅ Token guardado en Firestore');
+        }
+    } catch (error) {
+        console.log('❌ Error al obtener token:', error);
+    }
+}
+
+// Escuchar mensajes cuando la app está abierta
+onMessage(messaging, (payload) => {
+    console.log('📩 Mensaje recibido en primer plano:', payload);
+    
+    // Reproducir sonido
+    const audio = new Audio('/notification.mp3');
+    audio.play().catch(e => console.log('Error al reproducir sonido:', e));
+    
+    // Mostrar notificación
+    if (Notification.permission === 'granted') {
+        new Notification(payload.notification?.title || '💬 Nuevo mensaje', {
+            body: payload.notification?.body || 'Alguien te ha escrito',
+            icon: '/avatars/avatar1.png'
+        });
+    }
+    
+    // Mostrar toast dentro de la app
+    const toast = document.getElementById('toast');
+    if (toast) {
+        toast.textContent = '📩 ' + (payload.notification?.body || 'Nuevo mensaje');
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
+    }
+});
+
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = 'index.html'; return; }
     usuarioActual = user;
@@ -499,6 +562,9 @@ onAuthStateChanged(auth, async (user) => {
     
     await cargarContactos();
     iniciarListenerGlobal();
+    
+    // Solicitar permiso para notificaciones
+    await solicitarPermisoNotificaciones();
 });
 
 async function cargarContactos() {
@@ -640,7 +706,6 @@ async function guardarPerfil() {
     const avatar = avatares[avatarSeleccionado];
     await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { nombre, fondoChat: fondo, avatarImg: avatar.img, avatarColor: avatar.color });
     
-    // Actualizar avatar en el header después de guardar
     const profileAvatar = document.getElementById('profileAvatar');
     if (profileAvatar) profileAvatar.src = avatar.img;
     
