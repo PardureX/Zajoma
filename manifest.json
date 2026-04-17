@@ -1,0 +1,22 @@
+{
+  "name": "Zajoma Chat",
+  "short_name": "Zajoma",
+  "description": "Chat en tiempo real con tus amigos",
+  "start_url": "/chat.html",
+  "display": "standalone",
+  "background_color": "#4A90E2",
+  "theme_color": "#2E75B6",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "avatars/avatar1.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "avatars/avatar1.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
