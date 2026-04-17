@@ -273,23 +273,41 @@
             transform: scale(1.05);
         }
         
-        /* Botón de instalación */
-        #installContainer {
+        /* Botón de instalación - SIEMPRE VISIBLE */
+        .install-btn-container {
             position: fixed;
-            bottom: 80px;
-            left: 20px;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 1000;
-            display: none;
+            text-align: center;
         }
-        #installBtn {
+        .install-btn {
             background: #2E75B6;
             color: white;
             border: none;
-            padding: 12px 20px;
-            border-radius: 30px;
+            padding: 12px 24px;
+            border-radius: 50px;
             font-size: 14px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .install-instructions {
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-top: 10px;
+            display: none;
+            text-align: center;
+        }
+        .install-instructions.show {
+            display: block;
         }
         
         @media (max-width: 768px) {
@@ -297,8 +315,8 @@
                 font-size: 18px;
                 padding: 6px 12px;
             }
-            #installBtn {
-                padding: 10px 16px;
+            .install-btn {
+                padding: 10px 20px;
                 font-size: 12px;
             }
         }
@@ -353,9 +371,15 @@
     </div>
 </div>
 
-<!-- Botón de instalación de app -->
-<div id="installContainer">
-    <button id="installBtn">📲 Instalar App</button>
+<!-- Botón de instalación - SIEMPRE VISIBLE -->
+<div class="install-btn-container">
+    <button class="install-btn" id="installBtn">
+        📲 Instalar App en tu teléfono
+    </button>
+    <div id="installInstructions" class="install-instructions">
+        📱 En iPhone: Compartir → "Añadir a pantalla de inicio"<br>
+        🤖 En Android: Toca el botón de arriba
+    </div>
 </div>
 
 <div id="perfilModal" class="modal">
@@ -716,30 +740,21 @@ if ('serviceWorker' in navigator) {
 }
 
 // ========== BOTÓN DE INSTALACIÓN ==========
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    document.getElementById('installContainer').style.display = 'block';
-});
-
 document.getElementById('installBtn').addEventListener('click', () => {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') {
-                console.log('Usuario instaló la app');
-            }
-            deferredPrompt = null;
-            document.getElementById('installContainer').style.display = 'none';
-        });
-    }
+    const instructions = document.getElementById('installInstructions');
+    instructions.classList.toggle('show');
+    
+    // Ocultar después de 5 segundos
+    setTimeout(() => {
+        instructions.classList.remove('show');
+    }, 5000);
 });
 
-window.addEventListener('appinstalled', () => {
-    console.log('App instalada correctamente');
-    document.getElementById('installContainer').style.display = 'none';
-});
+// Mostrar instrucciones para iOS
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+if (isIOS) {
+    document.getElementById('installBtn').innerHTML = '📱 Instalar App (iOS)';
+}
 </script>
 </body>
 </html>
