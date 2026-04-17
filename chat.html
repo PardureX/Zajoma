@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewfit-cover">
     <title>Zajoma Chat</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -30,9 +30,35 @@
             justify-content: space-between;
             color: white;
         }
-        .app-header h2 { font-size: 18px; }
-        .header-buttons { display: flex; gap: 15px; }
-        .header-btn {
+        .app-header h2 { 
+            font-size: 18px; 
+            flex: 1;
+            text-align: center;
+        }
+        .header-buttons { 
+            display: flex; 
+            gap: 15px; 
+        }
+        /* Botón de perfil a la izquierda */
+        .profile-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .profile-avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .refresh-btn {
             background: none;
             border: none;
             color: white;
@@ -283,11 +309,11 @@
 
 <div id="contactsScreen" class="contacts-screen">
     <div class="app-header">
+        <button class="profile-btn" id="profileBtn">
+            <img class="profile-avatar" id="profileAvatar" src="" alt="Perfil">
+        </button>
         <h2>💬 Zajoma Chat</h2>
-        <div class="header-buttons">
-            <button class="header-btn" id="refreshBtn">🔄</button>
-            <button class="header-btn" id="profileBtn">👤</button>
-        </div>
+        <button class="refresh-btn" id="refreshBtn">🔄</button>
     </div>
     <div class="contacts-list" id="contactsList">
         <div class="empty">Cargando contactos...</div>
@@ -464,6 +490,13 @@ onAuthStateChanged(auth, async (user) => {
     } else {
         await updateDoc(userRef, { online: true });
     }
+    
+    // Actualizar avatar en el header
+    const userData = userDoc.data();
+    const avatarImg = userData?.avatarImg || avatares[0].img;
+    const profileAvatar = document.getElementById('profileAvatar');
+    if (profileAvatar) profileAvatar.src = avatarImg;
+    
     await cargarContactos();
     iniciarListenerGlobal();
 });
@@ -606,6 +639,11 @@ async function guardarPerfil() {
     const fondo = document.getElementById('editFondo').value;
     const avatar = avatares[avatarSeleccionado];
     await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { nombre, fondoChat: fondo, avatarImg: avatar.img, avatarColor: avatar.color });
+    
+    // Actualizar avatar en el header después de guardar
+    const profileAvatar = document.getElementById('profileAvatar');
+    if (profileAvatar) profileAvatar.src = avatar.img;
+    
     cerrarModalPerfil();
     await cargarContactos();
 }
