@@ -35,11 +35,6 @@
             flex: 1;
             text-align: center;
         }
-        .header-buttons { 
-            display: flex; 
-            gap: 15px; 
-            align-items: center;
-        }
         .profile-btn {
             background: none;
             border: none;
@@ -208,6 +203,7 @@
             padding: 8px 14px;
             cursor: pointer;
             font-size: 20px;
+            flex-shrink: 0;
         }
         .input-area {
             display: flex;
@@ -233,6 +229,11 @@
             cursor: pointer;
             font-size: 15px;
             font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        .input-area button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         .empty { text-align: center; color: #888; padding: 40px; }
@@ -326,7 +327,7 @@
 <div id="chatScreen" class="chat-screen">
     <div class="chat-header">
         <button class="back-btn" id="backBtn">←</button>
-        <img class="chat-header-avatar" id="chatAvatar" src="">
+        <img class="chat-header-avatar" id="chatAvatar" src="" alt="Avatar">
         <div class="chat-header-info">
             <h3 id="chatNombre">...</h3>
             <p id="chatStatus">...</p>
@@ -359,7 +360,7 @@
     </div>
 </div>
 
-<div id="toast" class="toast">🔄 Contactos actualizados</div>
+<div id="toast" class="toast"></div>
 
 <div id="perfilModal" class="modal">
     <div class="modal-content">
@@ -376,9 +377,11 @@
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, where, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, where, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// ✅ FIX: Importamos Realtime Database para presencia real con onDisconnect
+import { getDatabase, ref, set, onDisconnect, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyC4-_JQsS625vRMkmM4PeVupxX97FVBe5U",
@@ -386,14 +389,18 @@ const firebaseConfig = {
     projectId: "zajoma-8553f",
     storageBucket: "zajoma-8553f.firebasestorage.app",
     messagingSenderId: "390203043975",
-    appId: "1:390203043975:web:fe5e2f618ee285ce3bc822"
+    appId: "1:390203043975:web:fe5e2f618ee285ce3bc822",
+    // ✅ Necesitas agregar tu databaseURL aquí (la encuentras en Firebase Console > Realtime Database)
+    databaseURL: "https://zajoma-8553f-default-rtdb.firebaseio.com"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const rtdb = getDatabase(app); // ✅ Realtime Database para presencia
 
 let usuarioActual = null;
+let nombreUsuarioCache = null; // ✅ FIX: cache del nombre para no hacer getDoc en cada envío
 let chatActivo = null;
 let unsubscribeMessages = null;
 let unsubscribeGlobal = null;
@@ -401,9 +408,56 @@ let avatarSeleccionado = 0;
 let mensajesNoLeidos = {};
 let contactosCache = [];
 
+// ✅ FIX: colores fijos por índice, sin Math.random()
+const COLORES_AVATAR = [
+    "#E57373","#F06292","#BA68C8","#7986CB","#4FC3F7",
+    "#4DB6AC","#81C784","#FFD54F","#FF8A65","#90A4AE",
+    "#F48FB1","#CE93D8","#9FA8DA","#80DEEA","#80CBC4",
+    "#A5D6A7","#FFF176","#FFCC80","#FFAB91","#B0BEC5",
+    "#EF9A9A","#F48FB1","#E040FB","#448AFF","#00BCD4",
+    "#009688","#4CAF50","#FFEB3B","#FF5722"
+];
+
 const avatares = [];
 for (let i = 1; i <= 29; i++) {
-    avatares.push({ img: `avatars/avatar${i}.png`, color: "#" + Math.floor(Math.random()*16777215).toString(16) });
+    avatares.push({ img: `avatars/avatar${i}.png`, color: COLORES_AVATAR[i - 1] || "#4A90E2" });
+}
+
+// ✅ FIX: función para escapar HTML y prevenir XSS
+function escaparHTML(texto) {
+    const div = document.createElement('div');
+    div.textContent = texto;
+    return div.innerHTML;
+}
+
+// ✅ FIX: mostrar toast con mensaje personalizado
+function mostrarToast(mensaje) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = mensaje;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 1500);
+}
+
+// ✅ FIX: Presencia real con Realtime Database + onDisconnect
+async function iniciarPresencia(uid) {
+    const presenciaRef = ref(rtdb, `presencia/${uid}`);
+    try {
+        await set(presenciaRef, { online: true });
+        // El servidor ejecuta esto automáticamente cuando el cliente se desconecta
+        await onDisconnect(presenciaRef).set({ online: false });
+    } catch (e) {
+        console.error("Error al configurar presencia:", e);
+    }
+}
+
+// ✅ FIX: escuchar presencia en tiempo real de un contacto
+function escucharPresencia(uid, callback) {
+    const presenciaRef = ref(rtdb, `presencia/${uid}`);
+    return onValue(presenciaRef, (snapshot) => {
+        const data = snapshot.val();
+        callback(data?.online || false);
+    });
 }
 
 function cargarAvatares(selectedImg) {
@@ -411,11 +465,11 @@ function cargarAvatares(selectedImg) {
     if (!container) return;
     container.innerHTML = '';
     for (let i = 0; i < avatares.length; i++) {
-        const a = avatares[i];
         const img = document.createElement('img');
-        img.src = a.img;
+        img.src = avatares[i].img;
         img.className = 'avatar-option';
-        if (a.img === selectedImg) img.classList.add('selected');
+        img.alt = `Avatar ${i + 1}`;
+        if (avatares[i].img === selectedImg) img.classList.add('selected');
         img.onclick = (function(idx) { return function() { seleccionarAvatar(idx); }; })(i);
         container.appendChild(img);
     }
@@ -424,19 +478,28 @@ function cargarAvatares(selectedImg) {
 function seleccionarAvatar(idx) {
     avatarSeleccionado = idx;
     document.querySelectorAll('.avatar-option').forEach((el, i) => {
-        if (i === idx) el.classList.add('selected');
-        else el.classList.remove('selected');
+        el.classList.toggle('selected', i === idx);
     });
 }
 
+// ✅ FIX: Promise.all en vez de forEach async
 async function marcarComoLeidos(contactoUid) {
-    if (!contactoUid) return;
-    const chatId = [usuarioActual.uid, contactoUid].sort().join('_');
-    const q = query(collection(db, 'mensajes'), where('chatId', '==', chatId), where('emisor', '==', contactoUid), where('leido', '==', false));
-    const snapshot = await getDocs(q);
-    snapshot.forEach(async (docSnap) => {
-        await updateDoc(doc(db, 'mensajes', docSnap.id), { leido: true });
-    });
+    if (!contactoUid || !usuarioActual) return;
+    try {
+        const chatId = [usuarioActual.uid, contactoUid].sort().join('_');
+        const q = query(
+            collection(db, 'mensajes'),
+            where('chatId', '==', chatId),
+            where('emisor', '==', contactoUid),
+            where('leido', '==', false)
+        );
+        const snapshot = await getDocs(q);
+        await Promise.all(snapshot.docs.map(docSnap =>
+            updateDoc(doc(db, 'mensajes', docSnap.id), { leido: true })
+        ));
+    } catch (e) {
+        console.error("Error al marcar mensajes como leídos:", e);
+    }
 }
 
 function actualizarTodosLosBadges() {
@@ -463,14 +526,18 @@ function actualizarTodosLosBadges() {
 
 function iniciarListenerGlobal() {
     if (unsubscribeGlobal) unsubscribeGlobal();
-    const q = query(collection(db, 'mensajes'), orderBy('fecha', 'asc'));
+    // Filtramos solo mensajes donde el receptor es el usuario actual
+    // para no descargar toda la colección
+    const q = query(
+        collection(db, 'mensajes'),
+        where('receptor', '==', usuarioActual.uid),
+        where('leido', '==', false)
+    );
     unsubscribeGlobal = onSnapshot(q, (snapshot) => {
         const nuevosNoLeidos = {};
-        snapshot.forEach(doc => {
-            const msg = doc.data();
-            if (msg.emisor !== usuarioActual.uid && !msg.leido) {
-                nuevosNoLeidos[msg.emisor] = (nuevosNoLeidos[msg.emisor] || 0) + 1;
-            }
+        snapshot.forEach(d => {
+            const msg = d.data();
+            nuevosNoLeidos[msg.emisor] = (nuevosNoLeidos[msg.emisor] || 0) + 1;
         });
         mensajesNoLeidos = nuevosNoLeidos;
         actualizarTodosLosBadges();
@@ -480,110 +547,164 @@ function iniciarListenerGlobal() {
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = 'index.html'; return; }
     usuarioActual = user;
-    const userRef = doc(db, 'usuarios', user.uid);
-    const userDoc = await getDoc(userRef);
-    if (!userDoc.exists()) {
-        await setDoc(userRef, {
-            nombre: user.email.split('@')[0], email: user.email, uid: user.uid,
-            avatarImg: avatares[0].img, avatarColor: avatares[0].color, online: true, fondoChat: '#ECF5FF'
-        });
-    } else {
-        await updateDoc(userRef, { online: true });
+
+    try {
+        const userRef = doc(db, 'usuarios', user.uid);
+        const userDoc = await getDoc(userRef);
+
+        if (!userDoc.exists()) {
+            // ✅ FIX: usuario nuevo — creamos el doc y cacheamos nombre
+            const nuevoNombre = user.email.split('@')[0];
+            await setDoc(userRef, {
+                nombre: nuevoNombre, email: user.email, uid: user.uid,
+                avatarImg: avatares[0].img, avatarColor: avatares[0].color,
+                fondoChat: '#ECF5FF'
+            });
+            nombreUsuarioCache = nuevoNombre;
+            document.getElementById('profileAvatar').src = avatares[0].img;
+        } else {
+            // ✅ FIX: cacheamos nombre en memoria para no hacer getDoc al enviar
+            const data = userDoc.data();
+            nombreUsuarioCache = data?.nombre || user.email.split('@')[0];
+            document.getElementById('profileAvatar').src = data?.avatarImg || avatares[0].img;
+        }
+
+        // ✅ Presencia real con RTDB
+        await iniciarPresencia(user.uid);
+
+        await cargarContactos();
+        iniciarListenerGlobal();
+    } catch (e) {
+        console.error("Error al iniciar sesión:", e);
+        mostrarToast("❌ Error al cargar el perfil");
     }
-    
-    const userData = userDoc.data();
-    const avatarImg = userData?.avatarImg || avatares[0].img;
-    const profileAvatar = document.getElementById('profileAvatar');
-    if (profileAvatar) profileAvatar.src = avatarImg;
-    
-    await cargarContactos();
-    iniciarListenerGlobal();
 });
 
 async function cargarContactos() {
-    const snapshot = await getDocs(collection(db, 'usuarios'));
-    const contactos = [];
-    snapshot.forEach(doc => {
-        if (doc.id !== usuarioActual.uid) {
-            contactos.push({
-                uid: doc.id, nombre: doc.data().nombre, online: doc.data().online || false,
-                avatarImg: doc.data().avatarImg || avatares[0].img
-            });
-        }
-    });
-    contactosCache = contactos;
-    const container = document.getElementById('contactsList');
-    if (!container) return;
-    if (contactos.length === 0) {
-        container.innerHTML = '<div class="empty">No hay contactos aún.<br>Comparte el enlace con amigos</div>';
-        return;
-    }
-    container.innerHTML = contactos.map(c => {
-        const noLeidos = mensajesNoLeidos[c.uid] || 0;
-        const badgeHtml = noLeidos > 0 ? `<div class="unread-badge">${noLeidos}</div>` : '';
-        return `
-            <div class="contact" data-uid="${c.uid}">
-                <img class="contact-avatar" src="${c.avatarImg}">
-                <div class="contact-info">
-                    <div class="contact-name">${c.nombre}</div>
-                    <div class="contact-status">${c.online ? '🟢 En línea' : '⚫ Desconectado'}</div>
-                </div>
-                ${badgeHtml}
-            </div>
-        `;
-    }).join('');
-    document.querySelectorAll('.contact').forEach(el => {
-        el.addEventListener('click', () => {
-            const uid = el.getAttribute('data-uid');
-            const nombre = el.querySelector('.contact-name')?.innerText;
-            if (uid && nombre) abrirChat(uid, nombre);
+    try {
+        const snapshot = await getDocs(collection(db, 'usuarios'));
+        const contactos = [];
+        snapshot.forEach(d => {
+            if (d.id !== usuarioActual.uid) {
+                contactos.push({
+                    uid: d.id,
+                    // ✅ FIX: escapamos nombre para evitar XSS en la lista de contactos
+                    nombre: escaparHTML(d.data().nombre || 'Sin nombre'),
+                    avatarImg: d.data().avatarImg || avatares[0].img
+                });
+            }
         });
-    });
+        contactosCache = contactos;
+
+        const container = document.getElementById('contactsList');
+        if (!container) return;
+        if (contactos.length === 0) {
+            container.innerHTML = '<div class="empty">No hay contactos aún.<br>Comparte el enlace con amigos</div>';
+            return;
+        }
+
+        // Renderizamos con online: false por defecto; la presencia real llega por RTDB
+        container.innerHTML = contactos.map(c => {
+            const noLeidos = mensajesNoLeidos[c.uid] || 0;
+            const badgeHtml = noLeidos > 0 ? `<div class="unread-badge">${noLeidos}</div>` : '';
+            return `
+                <div class="contact" data-uid="${c.uid}" data-nombre="${c.nombre}">
+                    <img class="contact-avatar" src="${c.avatarImg}" alt="Avatar">
+                    <div class="contact-info">
+                        <div class="contact-name">${c.nombre}</div>
+                        <div class="contact-status" id="status-${c.uid}">⚫ Desconectado</div>
+                    </div>
+                    ${badgeHtml}
+                </div>
+            `;
+        }).join('');
+
+        // ✅ FIX: escuchamos presencia real de cada contacto via RTDB
+        contactos.forEach(c => {
+            escucharPresencia(c.uid, (online) => {
+                const statusEl = document.getElementById(`status-${c.uid}`);
+                if (statusEl) statusEl.textContent = online ? '🟢 En línea' : '⚫ Desconectado';
+            });
+        });
+
+        // ✅ FIX: usamos data-nombre en vez de leer innerText del DOM
+        document.querySelectorAll('.contact').forEach(el => {
+            el.addEventListener('click', () => {
+                const uid = el.getAttribute('data-uid');
+                const nombre = el.getAttribute('data-nombre');
+                if (uid && nombre) abrirChat(uid, nombre);
+            });
+        });
+    } catch (e) {
+        console.error("Error al cargar contactos:", e);
+        mostrarToast("❌ Error al cargar contactos");
+    }
 }
 
 async function actualizarContactos() {
-    const toast = document.getElementById('toast');
-    if (toast) toast.style.display = 'block';
+    mostrarToast("🔄 Contactos actualizados");
     await cargarContactos();
-    if (toast) setTimeout(() => toast.style.display = 'none', 1500);
 }
+
+let unsubscribePresenciaChat = null; // para limpiar listener de presencia al salir del chat
 
 async function abrirChat(uid, nombre) {
     if (unsubscribeMessages) unsubscribeMessages();
+    if (unsubscribePresenciaChat) unsubscribePresenciaChat();
     chatActivo = uid;
+
     if (mensajesNoLeidos[uid]) {
         delete mensajesNoLeidos[uid];
         actualizarTodosLosBadges();
-        await marcarComoLeidos(uid);
     }
+
     document.getElementById('contactsScreen').style.display = 'none';
     document.getElementById('chatScreen').style.display = 'flex';
-    document.getElementById('chatNombre').innerText = nombre;
-    const contactoDoc = await getDoc(doc(db, 'usuarios', uid));
-    const contactoData = contactoDoc.data();
-    document.getElementById('chatStatus').innerHTML = contactoData?.online ? '🟢 En línea' : '⚫ Desconectado';
-    document.getElementById('chatAvatar').src = contactoData?.avatarImg || avatares[0].img;
+    document.getElementById('chatNombre').textContent = nombre;
+
+    try {
+        const contactoDoc = await getDoc(doc(db, 'usuarios', uid));
+        const contactoData = contactoDoc.data();
+        document.getElementById('chatAvatar').src = contactoData?.avatarImg || avatares[0].img;
+
+        // ✅ FIX: presencia en tiempo real también en el header del chat
+        unsubscribePresenciaChat = escucharPresencia(uid, (online) => {
+            const statusEl = document.getElementById('chatStatus');
+            if (statusEl) statusEl.textContent = online ? '🟢 En línea' : '⚫ Desconectado';
+        });
+    } catch (e) {
+        console.error("Error al abrir chat:", e);
+    }
+
     document.getElementById('messages').innerHTML = '';
     const chatId = [usuarioActual.uid, uid].sort().join('_');
     const q = query(collection(db, 'mensajes'), where('chatId', '==', chatId), orderBy('fecha', 'asc'));
+
+    // Marcar como leídos al abrir
+    await marcarComoLeidos(uid);
+
     unsubscribeMessages = onSnapshot(q, (snapshot) => {
         const mensajes = [];
-        snapshot.forEach(doc => { mensajes.push({ id: doc.id, ...doc.data() }); });
+        snapshot.forEach(d => { mensajes.push({ id: d.id, ...d.data() }); });
         const container = document.getElementById('messages');
         if (!container) return;
         if (mensajes.length === 0) {
             container.innerHTML = '<div class="empty">💬 No hay mensajes aún. ¡Envía el primero!</div>';
             return;
         }
+
+        // ✅ FIX: usamos escaparHTML para evitar XSS en los mensajes
         container.innerHTML = mensajes.map(msg => {
-            let statusIcon = '';
-            if (msg.emisor === usuarioActual.uid) {
-                statusIcon = msg.leido ? '<span style="color:#4CAF50;">✓✓</span>' : '<span style="color:#aaa;">✓</span>';
-            }
+            const esMio = msg.emisor === usuarioActual.uid;
+            const statusIcon = esMio
+                ? (msg.leido ? '<span style="color:#4CAF50;">✓✓</span>' : '<span style="color:#aaa;">✓</span>')
+                : '';
+            const textoSeguro = escaparHTML(msg.texto);
+            const nombreSeguro = escaparHTML(esMio ? 'Tú' : (msg.nombre || ''));
             return `
-                <div class="message ${msg.emisor === usuarioActual.uid ? 'sent' : 'received'}">
-                    <strong>${msg.emisor === usuarioActual.uid ? 'Tú' : msg.nombre}:</strong><br>
-                    ${msg.texto}
+                <div class="message ${esMio ? 'sent' : 'received'}">
+                    <strong>${nombreSeguro}:</strong><br>
+                    ${textoSeguro}
                     <div class="message-time">
                         ${new Date(msg.fecha).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
                         ${statusIcon}
@@ -597,22 +718,40 @@ async function abrirChat(uid, nombre) {
 
 async function enviarMensaje() {
     const input = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
     const texto = input.value.trim();
     if (!texto || !chatActivo) return;
-    const userDoc = await getDoc(doc(db, 'usuarios', usuarioActual.uid));
-    const nombre = userDoc.data()?.nombre || usuarioActual.email.split('@')[0];
-    const chatId = [usuarioActual.uid, chatActivo].sort().join('_');
-    await addDoc(collection(db, 'mensajes'), {
-        chatId, emisor: usuarioActual.uid, receptor: chatActivo,
-        nombre, texto, fecha: Date.now(), leido: false
-    });
+
+    // ✅ FIX: deshabilitar botón mientras se envía para evitar duplicados
+    sendBtn.disabled = true;
     input.value = '';
+
+    try {
+        const chatId = [usuarioActual.uid, chatActivo].sort().join('_');
+        await addDoc(collection(db, 'mensajes'), {
+            chatId,
+            emisor: usuarioActual.uid,
+            receptor: chatActivo,
+            nombre: nombreUsuarioCache, // ✅ FIX: usamos el cache, sin getDoc extra
+            texto,
+            fecha: Date.now(),
+            leido: false
+        });
+    } catch (e) {
+        console.error("Error al enviar mensaje:", e);
+        mostrarToast("❌ Error al enviar el mensaje");
+        input.value = texto; // restauramos el texto si falló
+    } finally {
+        sendBtn.disabled = false;
+        input.focus();
+    }
 }
 
 function cerrarChat() {
     document.getElementById('chatScreen').style.display = 'none';
     document.getElementById('contactsScreen').style.display = 'flex';
     if (unsubscribeMessages) unsubscribeMessages();
+    if (unsubscribePresenciaChat) unsubscribePresenciaChat();
     chatActivo = null;
 }
 
@@ -623,49 +762,74 @@ function insertarEmoji(emoji) {
 }
 
 async function abrirModalPerfil() {
-    const userDoc = await getDoc(doc(db, 'usuarios', usuarioActual.uid));
-    const data = userDoc.data();
-    document.getElementById('editNombre').value = data?.nombre || '';
-    document.getElementById('editFondo').value = data?.fondoChat || '#ECF5FF';
-    cargarAvatares(data?.avatarImg || avatares[0].img);
-    document.getElementById('perfilModal').style.display = 'flex';
+    try {
+        const userDoc = await getDoc(doc(db, 'usuarios', usuarioActual.uid));
+        const data = userDoc.data();
+        document.getElementById('editNombre').value = data?.nombre || '';
+        document.getElementById('editFondo').value = data?.fondoChat || '#ECF5FF';
+        cargarAvatares(data?.avatarImg || avatares[0].img);
+        document.getElementById('perfilModal').style.display = 'flex';
+    } catch (e) {
+        console.error("Error al abrir perfil:", e);
+        mostrarToast("❌ Error al cargar el perfil");
+    }
 }
 
-function cerrarModalPerfil() { document.getElementById('perfilModal').style.display = 'none'; }
+function cerrarModalPerfil() {
+    document.getElementById('perfilModal').style.display = 'none';
+}
 
 async function guardarPerfil() {
-    const nombre = document.getElementById('editNombre').value;
+    const nombre = document.getElementById('editNombre').value.trim();
+    if (!nombre) { mostrarToast("⚠️ El nombre no puede estar vacío"); return; }
     const fondo = document.getElementById('editFondo').value;
     const avatar = avatares[avatarSeleccionado];
-    await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { nombre, fondoChat: fondo, avatarImg: avatar.img, avatarColor: avatar.color });
-    
-    const profileAvatar = document.getElementById('profileAvatar');
-    if (profileAvatar) profileAvatar.src = avatar.img;
-    
-    cerrarModalPerfil();
-    await cargarContactos();
+
+    try {
+        await updateDoc(doc(db, 'usuarios', usuarioActual.uid), {
+            nombre, fondoChat: fondo, avatarImg: avatar.img, avatarColor: avatar.color
+        });
+        // ✅ FIX: actualizamos el cache del nombre
+        nombreUsuarioCache = nombre;
+        document.getElementById('profileAvatar').src = avatar.img;
+        cerrarModalPerfil();
+        mostrarToast("✅ Perfil guardado");
+        await cargarContactos();
+    } catch (e) {
+        console.error("Error al guardar perfil:", e);
+        mostrarToast("❌ Error al guardar el perfil");
+    }
 }
 
 async function cerrarSesion() {
-    if (unsubscribeGlobal) unsubscribeGlobal();
-    await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { online: false });
-    await signOut(auth);
-    window.location.href = 'index.html';
+    try {
+        if (unsubscribeGlobal) unsubscribeGlobal();
+        if (unsubscribeMessages) unsubscribeMessages();
+        if (unsubscribePresenciaChat) unsubscribePresenciaChat();
+        // ✅ La presencia se apaga sola con onDisconnect, pero también la apagamos manualmente
+        await set(ref(rtdb, `presencia/${usuarioActual.uid}`), { online: false });
+        await signOut(auth);
+        window.location.href = 'index.html';
+    } catch (e) {
+        console.error("Error al cerrar sesión:", e);
+        mostrarToast("❌ Error al cerrar sesión");
+    }
 }
 
+// Event listeners
 document.getElementById('refreshBtn')?.addEventListener('click', actualizarContactos);
 document.getElementById('profileBtn')?.addEventListener('click', abrirModalPerfil);
 document.getElementById('logoutBtn')?.addEventListener('click', cerrarSesion);
 document.getElementById('backBtn')?.addEventListener('click', cerrarChat);
 document.getElementById('sendBtn')?.addEventListener('click', enviarMensaje);
-document.getElementById('messageInput')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarMensaje(); });
+document.getElementById('messageInput')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') enviarMensaje();
+});
 document.getElementById('guardarPerfilBtn')?.addEventListener('click', guardarPerfil);
 document.getElementById('cerrarModalBtn')?.addEventListener('click', cerrarModalPerfil);
 document.querySelectorAll('.emoji-bar button').forEach(btn => {
     btn.addEventListener('click', () => insertarEmoji(btn.getAttribute('data-emoji')));
 });
-
-window.seleccionarAvatar = seleccionarAvatar;
 </script>
 </body>
 </html>
