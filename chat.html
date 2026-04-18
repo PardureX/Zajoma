@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Zajoma Chat</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -16,6 +16,7 @@
             overflow: hidden;
         }
         
+        /* Pantalla de contactos */
         .contacts-screen {
             display: flex;
             flex-direction: column;
@@ -29,37 +30,25 @@
             align-items: center;
             justify-content: space-between;
             color: white;
+            flex-shrink: 0;
         }
-        .app-header h2 { 
-            font-size: 18px; 
-            flex: 1;
-            text-align: center;
-        }
+        .app-header h2 { font-size: 18px; flex: 1; text-align: center; }
         .profile-btn {
             background: none;
             border: none;
             cursor: pointer;
-            padding: 0;
             width: 40px;
             height: 40px;
             border-radius: 50%;
             overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
-        .profile-avatar {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .profile-avatar { width: 100%; height: 100%; object-fit: cover; }
         .refresh-btn {
             background: none;
             border: none;
             color: white;
             font-size: 24px;
             cursor: pointer;
-            padding: 5px;
         }
         
         .contacts-list {
@@ -77,10 +66,7 @@
             margin: 4px 0;
             border-radius: 12px;
             cursor: pointer;
-            position: relative;
-            transition: background 0.2s;
         }
-        .contact:active { background: #E8F0FE; }
         .contact-avatar {
             width: 50px;
             height: 50px;
@@ -101,15 +87,13 @@
             align-items: center;
             justify-content: center;
             padding: 0 5px;
-            position: absolute;
-            top: 10px;
-            right: 15px;
         }
         
         .logout-footer {
             padding: 12px;
             text-align: center;
             background: #E8F0FE;
+            flex-shrink: 0;
         }
         .logout-btn {
             background: none;
@@ -121,12 +105,14 @@
             cursor: pointer;
         }
         
+        /* Pantalla de chat - ARREGLADA */
         .chat-screen {
             display: none;
             flex-direction: column;
             height: 100%;
             background: #ECF5FF;
         }
+        
         .chat-header {
             background: #2E75B6;
             padding: 12px 16px;
@@ -134,6 +120,7 @@
             align-items: center;
             gap: 12px;
             color: white;
+            flex-shrink: 0;
         }
         .back-btn {
             background: none;
@@ -195,6 +182,7 @@
             background: #E8F0FE;
             border-top: 1px solid #ccc;
             overflow-x: auto;
+            flex-shrink: 0;
         }
         .emoji-bar button {
             background: white;
@@ -203,13 +191,14 @@
             padding: 8px 14px;
             cursor: pointer;
             font-size: 20px;
-            flex-shrink: 0;
         }
+        
         .input-area {
             display: flex;
             padding: 10px 12px;
             background: #D6E6F5;
             gap: 8px;
+            flex-shrink: 0;
         }
         .input-area input {
             flex: 1;
@@ -229,11 +218,6 @@
             cursor: pointer;
             font-size: 15px;
             font-weight: bold;
-            transition: opacity 0.2s;
-        }
-        .input-area button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
         }
         
         .empty { text-align: center; color: #888; padding: 40px; }
@@ -304,42 +288,6 @@
             object-fit: cover;
         }
         .avatar-option.selected { border-color: #2E75B6; }
-
-        /* BARRA DE NAVEGACIÓN */
-        .nav-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            display: flex;
-            border-top: 1px solid #ddd;
-            z-index: 100;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
-        }
-        .nav-btn {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 10px;
-            gap: 3px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #888;
-            font-family: inherit;
-            font-size: 11px;
-            font-weight: 700;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-        .nav-btn .nav-icon { font-size: 22px; }
-        .nav-btn.active { color: #2E75B6; }
-
-        /* Espacio para que la nav bar no tape el contenido */
-        .contacts-list { padding-bottom: 70px; }
     </style>
 </head>
 <body>
@@ -347,7 +295,7 @@
 <div id="contactsScreen" class="contacts-screen">
     <div class="app-header">
         <button class="profile-btn" id="profileBtn">
-            <img class="profile-avatar" id="profileAvatar" src="" alt="Perfil">
+            <img class="profile-avatar" id="profileAvatar" src="">
         </button>
         <h2>💬 Zajoma Chat</h2>
         <button class="refresh-btn" id="refreshBtn">🔄</button>
@@ -363,8 +311,8 @@
 <div id="chatScreen" class="chat-screen">
     <div class="chat-header">
         <button class="back-btn" id="backBtn">←</button>
-        <img class="chat-header-avatar" id="chatAvatar" src="" alt="Avatar" style="cursor:pointer" id="chatAvatarBtn">
-        <div class="chat-header-info" style="cursor:pointer" id="chatHeaderInfo">
+        <img class="chat-header-avatar" id="chatAvatar" src="">
+        <div class="chat-header-info">
             <h3 id="chatNombre">...</h3>
             <p id="chatStatus">...</p>
         </div>
@@ -396,40 +344,22 @@
     </div>
 </div>
 
-<div id="toast" class="toast"></div>
-
-<!-- Barra de navegación -->
-<nav class="nav-bar">
-    <a class="nav-btn active" href="chat.html">
-        <span class="nav-icon">💬</span>
-        Chats
-    </a>
-    <a class="nav-btn" href="muro.html">
-        <span class="nav-icon">🗞️</span>
-        Muro
-    </a>
-</nav>
+<div id="toast" class="toast">🔄 Contactos actualizados</div>
 
 <div id="perfilModal" class="modal">
     <div class="modal-content">
         <h3>👤 Mi Perfil</h3>
         <div id="avatarSelector" class="avatar-grid"></div>
         <input type="text" id="editNombre" placeholder="Nombre">
-        <select id="editFondo">
-            <option value="#ECF5FF">Claro</option>
-            <option value="#1a1a2e">Oscuro</option>
-        </select>
         <button id="guardarPerfilBtn">Guardar</button>
         <button id="cerrarModalBtn">Cancelar</button>
     </div>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, where, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-// ✅ FIX: Importamos Realtime Database para presencia real con onDisconnect
-import { getDatabase, ref, set, onDisconnect, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, query, getDocs, addDoc, onSnapshot, where, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyC4-_JQsS625vRMkmM4PeVupxX97FVBe5U",
@@ -437,75 +367,24 @@ const firebaseConfig = {
     projectId: "zajoma-8553f",
     storageBucket: "zajoma-8553f.firebasestorage.app",
     messagingSenderId: "390203043975",
-    appId: "1:390203043975:web:fe5e2f618ee285ce3bc822",
-    // ✅ Necesitas agregar tu databaseURL aquí (la encuentras en Firebase Console > Realtime Database)
-    databaseURL: "https://zajoma-8553f-default-rtdb.firebaseio.com"
+    appId: "1:390203043975:web:fe5e2f618ee285ce3bc822"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const rtdb = getDatabase(app); // ✅ Realtime Database para presencia
 
 let usuarioActual = null;
-let nombreUsuarioCache = null; // ✅ FIX: cache del nombre para no hacer getDoc en cada envío
 let chatActivo = null;
 let unsubscribeMessages = null;
-let unsubscribeGlobal = null;
+let unsubscribeContactos = null;
 let avatarSeleccionado = 0;
 let mensajesNoLeidos = {};
 let contactosCache = [];
 
-// ✅ FIX: colores fijos por índice, sin Math.random()
-const COLORES_AVATAR = [
-    "#E57373","#F06292","#BA68C8","#7986CB","#4FC3F7",
-    "#4DB6AC","#81C784","#FFD54F","#FF8A65","#90A4AE",
-    "#F48FB1","#CE93D8","#9FA8DA","#80DEEA","#80CBC4",
-    "#A5D6A7","#FFF176","#FFCC80","#FFAB91","#B0BEC5",
-    "#EF9A9A","#F48FB1","#E040FB","#448AFF","#00BCD4",
-    "#009688","#4CAF50","#FFEB3B","#FF5722"
-];
-
 const avatares = [];
 for (let i = 1; i <= 29; i++) {
-    avatares.push({ img: `avatars/avatar${i}.png`, color: COLORES_AVATAR[i - 1] || "#4A90E2" });
-}
-
-// ✅ FIX: función para escapar HTML y prevenir XSS
-function escaparHTML(texto) {
-    const div = document.createElement('div');
-    div.textContent = texto;
-    return div.innerHTML;
-}
-
-// ✅ FIX: mostrar toast con mensaje personalizado
-function mostrarToast(mensaje) {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
-    toast.textContent = mensaje;
-    toast.style.display = 'block';
-    setTimeout(() => toast.style.display = 'none', 1500);
-}
-
-// ✅ FIX: Presencia real con Realtime Database + onDisconnect
-async function iniciarPresencia(uid) {
-    const presenciaRef = ref(rtdb, `presencia/${uid}`);
-    try {
-        await set(presenciaRef, { online: true });
-        // El servidor ejecuta esto automáticamente cuando el cliente se desconecta
-        await onDisconnect(presenciaRef).set({ online: false });
-    } catch (e) {
-        console.error("Error al configurar presencia:", e);
-    }
-}
-
-// ✅ FIX: escuchar presencia en tiempo real de un contacto
-function escucharPresencia(uid, callback) {
-    const presenciaRef = ref(rtdb, `presencia/${uid}`);
-    return onValue(presenciaRef, (snapshot) => {
-        const data = snapshot.val();
-        callback(data?.online || false);
-    });
+    avatares.push({ img: `avatars/avatar${i}.png` });
 }
 
 function cargarAvatares(selectedImg) {
@@ -513,11 +392,11 @@ function cargarAvatares(selectedImg) {
     if (!container) return;
     container.innerHTML = '';
     for (let i = 0; i < avatares.length; i++) {
+        const a = avatares[i];
         const img = document.createElement('img');
-        img.src = avatares[i].img;
+        img.src = a.img;
         img.className = 'avatar-option';
-        img.alt = `Avatar ${i + 1}`;
-        if (avatares[i].img === selectedImg) img.classList.add('selected');
+        if (a.img === selectedImg) img.classList.add('selected');
         img.onclick = (function(idx) { return function() { seleccionarAvatar(idx); }; })(i);
         container.appendChild(img);
     }
@@ -526,233 +405,107 @@ function cargarAvatares(selectedImg) {
 function seleccionarAvatar(idx) {
     avatarSeleccionado = idx;
     document.querySelectorAll('.avatar-option').forEach((el, i) => {
-        el.classList.toggle('selected', i === idx);
+        if (i === idx) el.classList.add('selected');
+        else el.classList.remove('selected');
     });
 }
 
-// ✅ FIX: Promise.all en vez de forEach async
-async function marcarComoLeidos(contactoUid) {
-    if (!contactoUid || !usuarioActual) return;
-    try {
-        const chatId = [usuarioActual.uid, contactoUid].sort().join('_');
-        const q = query(
-            collection(db, 'mensajes'),
-            where('chatId', '==', chatId),
-            where('emisor', '==', contactoUid),
-            where('leido', '==', false)
-        );
-        const snapshot = await getDocs(q);
-        await Promise.all(snapshot.docs.map(docSnap =>
-            updateDoc(doc(db, 'mensajes', docSnap.id), { leido: true })
-        ));
-    } catch (e) {
-        console.error("Error al marcar mensajes como leídos:", e);
+function actualizarUIcontactos() {
+    const container = document.getElementById('contactsList');
+    if (!container) return;
+    
+    if (contactosCache.length === 0) {
+        container.innerHTML = '<div class="empty">No hay contactos aún.<br>Comparte el enlace con amigos</div>';
+        return;
     }
-}
-
-function actualizarTodosLosBadges() {
-    contactosCache.forEach(contacto => {
-        const contactoDiv = document.querySelector(`.contact[data-uid="${contacto.uid}"]`);
-        if (contactoDiv) {
-            const badgeExistente = contactoDiv.querySelector('.unread-badge');
-            const noLeidos = mensajesNoLeidos[contacto.uid] || 0;
-            if (noLeidos > 0) {
-                if (badgeExistente) {
-                    badgeExistente.textContent = noLeidos;
-                } else {
-                    const badge = document.createElement('div');
-                    badge.className = 'unread-badge';
-                    badge.textContent = noLeidos;
-                    contactoDiv.appendChild(badge);
-                }
-            } else if (badgeExistente) {
-                badgeExistente.remove();
-            }
-        }
-    });
-}
-
-function iniciarListenerGlobal() {
-    if (unsubscribeGlobal) unsubscribeGlobal();
-    // Filtramos solo mensajes donde el receptor es el usuario actual
-    // para no descargar toda la colección
-    const q = query(
-        collection(db, 'mensajes'),
-        where('receptor', '==', usuarioActual.uid),
-        where('leido', '==', false)
-    );
-    unsubscribeGlobal = onSnapshot(q, (snapshot) => {
-        const nuevosNoLeidos = {};
-        snapshot.forEach(d => {
-            const msg = d.data();
-            nuevosNoLeidos[msg.emisor] = (nuevosNoLeidos[msg.emisor] || 0) + 1;
+    
+    container.innerHTML = contactosCache.map(c => {
+        const noLeidos = mensajesNoLeidos[c.uid] || 0;
+        const badgeHtml = noLeidos > 0 ? `<div class="unread-badge">${noLeidos}</div>` : '';
+        return `
+            <div class="contact" data-uid="${c.uid}">
+                <img class="contact-avatar" src="${c.avatarImg}">
+                <div class="contact-info">
+                    <div class="contact-name">${c.nombre}</div>
+                    <div class="contact-status">${c.online ? '🟢 En línea' : '⚫ Desconectado'}</div>
+                </div>
+                ${badgeHtml}
+            </div>
+        `;
+    }).join('');
+    
+    document.querySelectorAll('.contact').forEach(el => {
+        el.addEventListener('click', () => {
+            const uid = el.getAttribute('data-uid');
+            const contacto = contactosCache.find(c => c.uid === uid);
+            if (uid && contacto) abrirChat(uid, contacto.nombre);
         });
-        mensajesNoLeidos = nuevosNoLeidos;
-        actualizarTodosLosBadges();
     });
 }
 
-onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location.href = 'index.html'; return; }
-    usuarioActual = user;
-
-    try {
-        const userRef = doc(db, 'usuarios', user.uid);
-        const userDoc = await getDoc(userRef);
-
-        if (!userDoc.exists()) {
-            // ✅ FIX: usuario nuevo — creamos el doc y cacheamos nombre
-            const nuevoNombre = user.email.split('@')[0];
-            await setDoc(userRef, {
-                nombre: nuevoNombre, email: user.email, uid: user.uid,
-                avatarImg: avatares[0].img, avatarColor: avatares[0].color,
-                fondoChat: '#ECF5FF'
-            });
-            nombreUsuarioCache = nuevoNombre;
-            document.getElementById('profileAvatar').src = avatares[0].img;
-        } else {
-            // ✅ FIX: cacheamos nombre en memoria para no hacer getDoc al enviar
-            const data = userDoc.data();
-            nombreUsuarioCache = data?.nombre || user.email.split('@')[0];
-            document.getElementById('profileAvatar').src = data?.avatarImg || avatares[0].img;
-        }
-
-        // ✅ Presencia real con RTDB
-        await iniciarPresencia(user.uid);
-
-        await cargarContactos();
-        iniciarListenerGlobal();
-    } catch (e) {
-        console.error("Error al iniciar sesión:", e);
-        mostrarToast("❌ Error al cargar el perfil");
-    }
-});
-
-async function cargarContactos() {
-    try {
-        const snapshot = await getDocs(collection(db, 'usuarios'));
-        const contactos = [];
-        snapshot.forEach(d => {
-            if (d.id !== usuarioActual.uid) {
-                contactos.push({
-                    uid: d.id,
-                    // ✅ FIX: escapamos nombre para evitar XSS en la lista de contactos
-                    nombre: escaparHTML(d.data().nombre || 'Sin nombre'),
-                    avatarImg: d.data().avatarImg || avatares[0].img
+function iniciarListenerContactos() {
+    if (unsubscribeContactos) unsubscribeContactos();
+    
+    const q = query(collection(db, 'usuarios'));
+    unsubscribeContactos = onSnapshot(q, (snapshot) => {
+        const nuevosContactos = [];
+        snapshot.forEach(doc => {
+            if (doc.id !== usuarioActual?.uid) {
+                nuevosContactos.push({
+                    uid: doc.id,
+                    nombre: doc.data().nombre,
+                    online: doc.data().online || false,
+                    avatarImg: doc.data().avatarImg || avatares[0].img
                 });
             }
         });
-        contactosCache = contactos;
-
-        const container = document.getElementById('contactsList');
-        if (!container) return;
-        if (contactos.length === 0) {
-            container.innerHTML = '<div class="empty">No hay contactos aún.<br>Comparte el enlace con amigos</div>';
-            return;
+        contactosCache = nuevosContactos;
+        actualizarUIcontactos();
+        
+        if (chatActivo) {
+            const contacto = contactosCache.find(c => c.uid === chatActivo);
+            if (contacto) {
+                document.getElementById('chatStatus').innerHTML = contacto.online ? '🟢 En línea' : '⚫ Desconectado';
+            }
         }
-
-        // Renderizamos con online: false por defecto; la presencia real llega por RTDB
-        container.innerHTML = contactos.map(c => {
-            const noLeidos = mensajesNoLeidos[c.uid] || 0;
-            const badgeHtml = noLeidos > 0 ? `<div class="unread-badge">${noLeidos}</div>` : '';
-            return `
-                <div class="contact" data-uid="${c.uid}" data-nombre="${c.nombre}">
-                    <img class="contact-avatar" src="${c.avatarImg}" alt="Avatar">
-                    <div class="contact-info">
-                        <div class="contact-name">${c.nombre}</div>
-                        <div class="contact-status" id="status-${c.uid}">⚫ Desconectado</div>
-                    </div>
-                    ${badgeHtml}
-                </div>
-            `;
-        }).join('');
-
-        // ✅ FIX: escuchamos presencia real de cada contacto via RTDB
-        contactos.forEach(c => {
-            escucharPresencia(c.uid, (online) => {
-                const statusEl = document.getElementById(`status-${c.uid}`);
-                if (statusEl) statusEl.textContent = online ? '🟢 En línea' : '⚫ Desconectado';
-            });
-        });
-
-        // ✅ FIX: usamos data-nombre en vez de leer innerText del DOM
-        document.querySelectorAll('.contact').forEach(el => {
-            el.addEventListener('click', () => {
-                const uid = el.getAttribute('data-uid');
-                const nombre = el.getAttribute('data-nombre');
-                if (uid && nombre) abrirChat(uid, nombre);
-            });
-        });
-    } catch (e) {
-        console.error("Error al cargar contactos:", e);
-        mostrarToast("❌ Error al cargar contactos");
-    }
+    });
 }
-
-async function actualizarContactos() {
-    mostrarToast("🔄 Contactos actualizados");
-    await cargarContactos();
-}
-
-let unsubscribePresenciaChat = null; // para limpiar listener de presencia al salir del chat
 
 async function abrirChat(uid, nombre) {
     if (unsubscribeMessages) unsubscribeMessages();
-    if (unsubscribePresenciaChat) unsubscribePresenciaChat();
     chatActivo = uid;
-
-    if (mensajesNoLeidos[uid]) {
-        delete mensajesNoLeidos[uid];
-        actualizarTodosLosBadges();
-    }
-
+    
     document.getElementById('contactsScreen').style.display = 'none';
     document.getElementById('chatScreen').style.display = 'flex';
-    document.getElementById('chatNombre').textContent = nombre;
-
-    try {
-        const contactoDoc = await getDoc(doc(db, 'usuarios', uid));
-        const contactoData = contactoDoc.data();
-        document.getElementById('chatAvatar').src = contactoData?.avatarImg || avatares[0].img;
-
-        // ✅ FIX: presencia en tiempo real también en el header del chat
-        unsubscribePresenciaChat = escucharPresencia(uid, (online) => {
-            const statusEl = document.getElementById('chatStatus');
-            if (statusEl) statusEl.textContent = online ? '🟢 En línea' : '⚫ Desconectado';
-        });
-    } catch (e) {
-        console.error("Error al abrir chat:", e);
-    }
-
+    document.getElementById('chatNombre').innerText = nombre;
+    
+    const contacto = contactosCache.find(c => c.uid === uid);
+    document.getElementById('chatStatus').innerHTML = contacto?.online ? '🟢 En línea' : '⚫ Desconectado';
+    document.getElementById('chatAvatar').src = contacto?.avatarImg || avatares[0].img;
     document.getElementById('messages').innerHTML = '';
+    
     const chatId = [usuarioActual.uid, uid].sort().join('_');
-    const q = query(collection(db, 'mensajes'), where('chatId', '==', chatId), orderBy('fecha', 'asc'));
-
-    // Marcar como leídos al abrir
-    await marcarComoLeidos(uid);
-
+    const q = query(collection(db, 'mensajes'), where('chatId', '==', chatId));
     unsubscribeMessages = onSnapshot(q, (snapshot) => {
         const mensajes = [];
-        snapshot.forEach(d => { mensajes.push({ id: d.id, ...d.data() }); });
+        snapshot.forEach(doc => { mensajes.push({ id: doc.id, ...doc.data() }); });
+        mensajes.sort((a, b) => a.fecha - b.fecha);
+        
         const container = document.getElementById('messages');
         if (!container) return;
         if (mensajes.length === 0) {
             container.innerHTML = '<div class="empty">💬 No hay mensajes aún. ¡Envía el primero!</div>';
             return;
         }
-
-        // ✅ FIX: usamos escaparHTML para evitar XSS en los mensajes
         container.innerHTML = mensajes.map(msg => {
-            const esMio = msg.emisor === usuarioActual.uid;
-            const statusIcon = esMio
-                ? (msg.leido ? '<span style="color:#4CAF50;">✓✓</span>' : '<span style="color:#aaa;">✓</span>')
-                : '';
-            const textoSeguro = escaparHTML(msg.texto);
-            const nombreSeguro = escaparHTML(esMio ? 'Tú' : (msg.nombre || ''));
+            let statusIcon = '';
+            if (msg.emisor === usuarioActual.uid) {
+                statusIcon = msg.leido ? '<span style="color:#4CAF50;">✓✓</span>' : '<span style="color:#aaa;">✓</span>';
+            }
             return `
-                <div class="message ${esMio ? 'sent' : 'received'}">
-                    <strong>${nombreSeguro}:</strong><br>
-                    ${textoSeguro}
+                <div class="message ${msg.emisor === usuarioActual.uid ? 'sent' : 'received'}">
+                    <strong>${msg.emisor === usuarioActual.uid ? 'Tú' : msg.nombre}:</strong><br>
+                    ${msg.texto}
                     <div class="message-time">
                         ${new Date(msg.fecha).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
                         ${statusIcon}
@@ -766,40 +519,24 @@ async function abrirChat(uid, nombre) {
 
 async function enviarMensaje() {
     const input = document.getElementById('messageInput');
-    const sendBtn = document.getElementById('sendBtn');
     const texto = input.value.trim();
     if (!texto || !chatActivo) return;
-
-    // ✅ FIX: deshabilitar botón mientras se envía para evitar duplicados
-    sendBtn.disabled = true;
+    
+    const userDoc = await getDoc(doc(db, 'usuarios', usuarioActual.uid));
+    const nombre = userDoc.data()?.nombre || usuarioActual.email.split('@')[0];
+    const chatId = [usuarioActual.uid, chatActivo].sort().join('_');
+    
+    await addDoc(collection(db, 'mensajes'), {
+        chatId, emisor: usuarioActual.uid, receptor: chatActivo,
+        nombre, texto, fecha: Date.now(), leido: false
+    });
     input.value = '';
-
-    try {
-        const chatId = [usuarioActual.uid, chatActivo].sort().join('_');
-        await addDoc(collection(db, 'mensajes'), {
-            chatId,
-            emisor: usuarioActual.uid,
-            receptor: chatActivo,
-            nombre: nombreUsuarioCache, // ✅ FIX: usamos el cache, sin getDoc extra
-            texto,
-            fecha: Date.now(),
-            leido: false
-        });
-    } catch (e) {
-        console.error("Error al enviar mensaje:", e);
-        mostrarToast("❌ Error al enviar el mensaje");
-        input.value = texto; // restauramos el texto si falló
-    } finally {
-        sendBtn.disabled = false;
-        input.focus();
-    }
 }
 
 function cerrarChat() {
     document.getElementById('chatScreen').style.display = 'none';
     document.getElementById('contactsScreen').style.display = 'flex';
     if (unsubscribeMessages) unsubscribeMessages();
-    if (unsubscribePresenciaChat) unsubscribePresenciaChat();
     chatActivo = null;
 }
 
@@ -809,88 +546,77 @@ function insertarEmoji(emoji) {
     input.focus();
 }
 
-async function abrirModalPerfil() {
-    try {
-        const userDoc = await getDoc(doc(db, 'usuarios', usuarioActual.uid));
-        const data = userDoc.data();
-        document.getElementById('editNombre').value = data?.nombre || '';
-        document.getElementById('editFondo').value = data?.fondoChat || '#ECF5FF';
-        cargarAvatares(data?.avatarImg || avatares[0].img);
-        document.getElementById('perfilModal').style.display = 'flex';
-    } catch (e) {
-        console.error("Error al abrir perfil:", e);
-        mostrarToast("❌ Error al cargar el perfil");
-    }
+async function actualizarContactos() {
+    const toast = document.getElementById('toast');
+    if (toast) toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 1500);
 }
 
-function cerrarModalPerfil() {
-    document.getElementById('perfilModal').style.display = 'none';
+async function abrirModalPerfil() {
+    const userDoc = await getDoc(doc(db, 'usuarios', usuarioActual.uid));
+    const data = userDoc.data();
+    document.getElementById('editNombre').value = data?.nombre || '';
+    cargarAvatares(data?.avatarImg || avatares[0].img);
+    document.getElementById('perfilModal').style.display = 'flex';
 }
+
+function cerrarModalPerfil() { document.getElementById('perfilModal').style.display = 'none'; }
 
 async function guardarPerfil() {
-    const nombre = document.getElementById('editNombre').value.trim();
-    if (!nombre) { mostrarToast("⚠️ El nombre no puede estar vacío"); return; }
-    const fondo = document.getElementById('editFondo').value;
+    const nombre = document.getElementById('editNombre').value;
     const avatar = avatares[avatarSeleccionado];
-
-    try {
-        await updateDoc(doc(db, 'usuarios', usuarioActual.uid), {
-            nombre, fondoChat: fondo, avatarImg: avatar.img, avatarColor: avatar.color
-        });
-        // ✅ FIX: actualizamos el cache del nombre
-        nombreUsuarioCache = nombre;
-        document.getElementById('profileAvatar').src = avatar.img;
-        cerrarModalPerfil();
-        mostrarToast("✅ Perfil guardado");
-        await cargarContactos();
-    } catch (e) {
-        console.error("Error al guardar perfil:", e);
-        mostrarToast("❌ Error al guardar el perfil");
-    }
+    await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { nombre, avatarImg: avatar.img });
+    const profileAvatar = document.getElementById('profileAvatar');
+    if (profileAvatar) profileAvatar.src = avatar.img;
+    cerrarModalPerfil();
 }
 
 async function cerrarSesion() {
-    try {
-        if (unsubscribeGlobal) unsubscribeGlobal();
-        if (unsubscribeMessages) unsubscribeMessages();
-        if (unsubscribePresenciaChat) unsubscribePresenciaChat();
-        // ✅ La presencia se apaga sola con onDisconnect, pero también la apagamos manualmente
-        await set(ref(rtdb, `presencia/${usuarioActual.uid}`), { online: false });
-        await signOut(auth);
-        window.location.href = 'index.html';
-    } catch (e) {
-        console.error("Error al cerrar sesión:", e);
-        mostrarToast("❌ Error al cerrar sesión");
-    }
+    if (unsubscribeContactos) unsubscribeContactos();
+    await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { online: false });
+    await signOut(auth);
+    window.location.href = 'index.html';
 }
 
-// Event listeners
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    usuarioActual = user;
+    
+    const userRef = doc(db, 'usuarios', user.uid);
+    const userDoc = await getDoc(userRef);
+    
+    if (!userDoc.exists()) {
+        await setDoc(userRef, {
+            nombre: user.email.split('@')[0], 
+            email: user.email, 
+            uid: user.uid,
+            avatarImg: avatares[0].img, 
+            online: true
+        });
+    } else {
+        await updateDoc(userRef, { online: true });
+    }
+    
+    const profileAvatar = document.getElementById('profileAvatar');
+    const userData = (await getDoc(userRef)).data();
+    if (profileAvatar) profileAvatar.src = userData?.avatarImg || avatares[0].img;
+    
+    iniciarListenerContactos();
+});
+
 document.getElementById('refreshBtn')?.addEventListener('click', actualizarContactos);
 document.getElementById('profileBtn')?.addEventListener('click', abrirModalPerfil);
 document.getElementById('logoutBtn')?.addEventListener('click', cerrarSesion);
 document.getElementById('backBtn')?.addEventListener('click', cerrarChat);
 document.getElementById('sendBtn')?.addEventListener('click', enviarMensaje);
-document.getElementById('messageInput')?.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') enviarMensaje();
-});
+document.getElementById('messageInput')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarMensaje(); });
 document.getElementById('guardarPerfilBtn')?.addEventListener('click', guardarPerfil);
 document.getElementById('cerrarModalBtn')?.addEventListener('click', cerrarModalPerfil);
 document.querySelectorAll('.emoji-bar button').forEach(btn => {
     btn.addEventListener('click', () => insertarEmoji(btn.getAttribute('data-emoji')));
 });
 
-// ✅ Ir al perfil del contacto tocando su avatar o nombre en el header del chat
-document.getElementById('chatAvatar')?.addEventListener('click', () => {
-    if (chatActivo) window.location.href = `perfil.html?uid=${chatActivo}`;
-});
-document.getElementById('chatHeaderInfo')?.addEventListener('click', () => {
-    if (chatActivo) window.location.href = `perfil.html?uid=${chatActivo}`;
-});
-
-// ✅ Ir a mi propio perfil tocando mi avatar en la pantalla principal
-document.getElementById('profileBtn')?.addEventListener('click', () => {
-    if (usuarioActual) window.location.href = `perfil.html?uid=${usuarioActual.uid}`;
-}, { once: false });
+window.seleccionarAvatar = seleccionarAvatar;
 </script>
 </body>
 </html>
