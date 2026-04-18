@@ -384,6 +384,28 @@
         }
         .btn-guardar:disabled { opacity: 0.5; }
 
+        /* SELECTOR DE AVATAR */
+        .avatar-selector-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            max-height: 180px;
+            overflow-y: auto;
+            margin-top: 4px;
+            padding: 4px;
+        }
+        .avatar-opcion {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            object-fit: cover;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: border-color 0.15s, transform 0.1s;
+        }
+        .avatar-opcion:active { transform: scale(0.93); }
+        .avatar-opcion.selected { border-color: var(--azul); }
+
         /* BARRA NAVEGACIÓN */
         .nav-bar {
             position: fixed;
@@ -458,6 +480,11 @@
 <div class="modal" id="editModal">
     <div class="modal-content">
         <div class="modal-titulo">✏️ Editar mi perfil</div>
+
+        <div class="campo-grupo">
+            <label class="campo-label">Foto de perfil</label>
+            <div class="avatar-selector-grid" id="avatarSelectorGrid"></div>
+        </div>
 
         <div class="campo-grupo">
             <label class="campo-label">Nombre</label>
@@ -547,8 +574,40 @@ const ESTADOS = [
 ];
 
 let usuarioActual = null;
-let uidPerfil = null; // UID del perfil que se está viendo
+let uidPerfil = null;
 let estadoSeleccionado = null;
+let avatarSeleccionado = null; // img path del avatar seleccionado
+
+const COLORES_AVATAR = [
+    "#E57373","#F06292","#BA68C8","#7986CB","#4FC3F7",
+    "#4DB6AC","#81C784","#FFD54F","#FF8A65","#90A4AE",
+    "#F48FB1","#CE93D8","#9FA8DA","#80DEEA","#80CBC4",
+    "#A5D6A7","#FFF176","#FFCC80","#FFAB91","#B0BEC5",
+    "#EF9A9A","#F48FB1","#E040FB","#448AFF","#00BCD4",
+    "#009688","#4CAF50","#FFEB3B","#FF5722","#78909C"
+];
+const avatares = [];
+for (let i = 1; i <= 29; i++) {
+    avatares.push({ img: `avatars/avatar${i}.png`, color: COLORES_AVATAR[i - 1] || "#4A90E2" });
+}
+
+function renderAvatarSelector(selectedImg) {
+    const grid = document.getElementById('avatarSelectorGrid');
+    if (!grid) return;
+    grid.innerHTML = avatares.map((a, i) => `
+        <img class="avatar-opcion ${a.img === selectedImg ? 'selected' : ''}"
+             src="${a.img}" alt="Avatar ${i+1}"
+             data-img="${a.img}" data-color="${a.color}"
+             onerror="this.src='avatars/avatar1.png'">
+    `).join('');
+    grid.querySelectorAll('.avatar-opcion').forEach(img => {
+        img.addEventListener('click', () => {
+            grid.querySelectorAll('.avatar-opcion').forEach(el => el.classList.remove('selected'));
+            img.classList.add('selected');
+            avatarSeleccionado = { img: img.dataset.img, color: img.dataset.color };
+        });
+    });
+}
 
 function escaparHTML(texto) {
     const div = document.createElement('div');
@@ -710,6 +769,9 @@ async function abrirModalEditar() {
         document.getElementById('editCiudad').value = data?.ciudad || '';
         document.getElementById('editBio').value = data?.bio || '';
         estadoSeleccionado = data?.estadoAnimo || null;
+        // ✅ Inicializar avatar seleccionado con el actual
+        avatarSeleccionado = { img: data?.avatarImg || avatares[0].img, color: data?.avatarColor || avatares[0].color };
+        renderAvatarSelector(data?.avatarImg || avatares[0].img);
         renderEstados(estadoSeleccionado);
         document.getElementById('editModal').classList.add('visible');
     } catch (e) {
@@ -736,7 +798,9 @@ async function guardarPerfil() {
             edad: parseInt(document.getElementById('editEdad').value) || null,
             ciudad: document.getElementById('editCiudad').value.trim(),
             bio: document.getElementById('editBio').value.trim(),
-            estadoAnimo: estadoSeleccionado || null
+            estadoAnimo: estadoSeleccionado || null,
+            avatarImg: avatarSeleccionado?.img || avatares[0].img,
+            avatarColor: avatarSeleccionado?.color || avatares[0].color
         });
         cerrarModal();
         mostrarToast('✅ Perfil actualizado');
