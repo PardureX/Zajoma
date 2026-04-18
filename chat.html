@@ -109,11 +109,13 @@
             cursor: pointer;
         }
         
+        /* CHAT SCREEN - CORREGIDO */
         .chat-screen {
             display: none;
             flex-direction: column;
-            height: 100%;
+            height: 100vh;
             background: #ECF5FF;
+            overflow: hidden;
         }
         
         .chat-header {
@@ -151,6 +153,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            min-height: 0;
         }
         .message {
             max-width: 80%;
@@ -437,14 +440,9 @@ let avatarSeleccionado = 0;
 let mensajesNoLeidos = {};
 let contactosCache = [];
 
-const COLORES_AVATAR = [
-    "#E57373","#F06292","#BA68C8","#7986CB","#4FC3F7",
-    "#4DB6AC","#81C784","#FFD54F","#FF8A65","#90A4AE"
-];
-
 const avatares = [];
 for (let i = 1; i <= 29; i++) {
-    avatares.push({ img: `avatars/avatar${i}.png`, color: COLORES_AVATAR[i % COLORES_AVATAR.length] });
+    avatares.push({ img: `avatars/avatar${i}.png` });
 }
 
 function escaparHTML(texto) {
@@ -501,7 +499,7 @@ function actualizarUIcontactos() {
     if (!container) return;
     
     if (contactosCache.length === 0) {
-        container.innerHTML = '<div class="empty">No hay contactos aún.</div>';
+        container.innerHTML = '<div class="empty">No hay contactos aún.<br>Comparte el enlace con amigos</div>';
         return;
     }
     
@@ -553,7 +551,7 @@ function iniciarListenerContactos() {
                 const statusEl = document.getElementById(`status-${c.uid}`);
                 if (statusEl) statusEl.textContent = online ? '🟢 En línea' : '⚫ Desconectado';
                 if (chatActivo === c.uid) {
-                    document.getElementById('chatStatus').textContent = online ? '🟢 En línea' : '⚫ Desconectado';
+                    document.getElementById('chatStatus').innerHTML = online ? '🟢 En línea' : '⚫ Desconectado';
                 }
             });
         });
@@ -570,7 +568,7 @@ async function abrirChat(uid, nombre) {
     
     document.getElementById('contactsScreen').style.display = 'none';
     document.getElementById('chatScreen').style.display = 'flex';
-    document.getElementById('chatNombre').textContent = nombre;
+    document.getElementById('chatNombre').innerText = nombre;
     
     const contacto = contactosCache.find(c => c.uid === uid);
     document.getElementById('chatAvatar').src = contacto?.avatarImg || avatares[0].img;
@@ -651,7 +649,7 @@ function cerrarModalPerfil() { document.getElementById('perfilModal').style.disp
 
 async function guardarPerfil() {
     const nombre = document.getElementById('editNombre').value.trim();
-    if (!nombre) return;
+    if (!nombre) { mostrarToast("⚠️ El nombre no puede estar vacío"); return; }
     const avatar = avatares[avatarSeleccionado];
     await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { nombre, avatarImg: avatar.img });
     nombreUsuarioCache = nombre;
@@ -661,7 +659,10 @@ async function guardarPerfil() {
 }
 
 async function cerrarSesion() {
-    await set(ref(rtdb, `presencia/${usuarioActual.uid}`), { online: false });
+    if (usuarioActual) {
+        await set(ref(rtdb, `presencia/${usuarioActual.uid}`), { online: false });
+        await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { online: false });
+    }
     await signOut(auth);
     window.location.href = 'index.html';
 }
@@ -675,7 +676,13 @@ onAuthStateChanged(auth, async (user) => {
     
     if (!userDoc.exists()) {
         const nuevoNombre = user.email.split('@')[0];
-        await setDoc(userRef, { nombre: nuevoNombre, email: user.email, uid: user.uid, avatarImg: avatares[0].img, online: true });
+        await setDoc(userRef, { 
+            nombre: nuevoNombre, 
+            email: user.email, 
+            uid: user.uid,
+            avatarImg: avatares[0].img, 
+            online: true 
+        });
         nombreUsuarioCache = nuevoNombre;
     } else {
         nombreUsuarioCache = userDoc.data().nombre;
