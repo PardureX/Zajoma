@@ -557,8 +557,8 @@ function renderPosts(posts) {
         return `
             <div class="post" data-id="${p.id}">
                 <div class="post-header">
-                    <img class="post-avatar" src="${escaparHTML(p.avatarImg || '')}" alt="Avatar" onerror="this.src='avatars/avatar1.png'">
-                    <div class="post-meta">
+                    <img class="post-avatar" src="${escaparHTML(p.avatarImg || '')}" alt="Avatar" onerror="this.src='avatars/avatar1.png'" style="cursor:pointer" onclick="window.location.href='perfil.html?uid=${p.autorUid}'">
+                    <div class="post-meta" style="cursor:pointer" onclick="window.location.href='perfil.html?uid=${p.autorUid}'">
                         <div class="post-autor">${escaparHTML(p.autor)}</div>
                         <div class="post-fecha">${tiempoRelativo(p.fecha)}</div>
                     </div>
