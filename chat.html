@@ -16,7 +16,6 @@
             overflow: hidden;
         }
         
-        /* Pantalla de contactos */
         .contacts-screen {
             display: flex;
             flex-direction: column;
@@ -105,7 +104,6 @@
             cursor: pointer;
         }
         
-        /* Pantalla de chat - ARREGLADA */
         .chat-screen {
             display: none;
             flex-direction: column;
@@ -359,7 +357,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, query, getDocs, addDoc, onSnapshot, where, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, query, getDocs, addDoc, onSnapshot, where, setDoc, orderBy } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyC4-_JQsS625vRMkmM4PeVupxX97FVBe5U",
@@ -471,6 +469,7 @@ function iniciarListenerContactos() {
     });
 }
 
+// FUNCIÓN ABRIR CHAT CORREGIDA - CON orderBy PARA VER MENSAJES ANTIGUOS
 async function abrirChat(uid, nombre) {
     if (unsubscribeMessages) unsubscribeMessages();
     chatActivo = uid;
@@ -485,18 +484,23 @@ async function abrirChat(uid, nombre) {
     document.getElementById('messages').innerHTML = '';
     
     const chatId = [usuarioActual.uid, uid].sort().join('_');
-    const q = query(collection(db, 'mensajes'), where('chatId', '==', chatId));
+    // CORREGIDO: orderBy para traer mensajes en orden cronológico
+    const q = query(collection(db, 'mensajes'), where('chatId', '==', chatId), orderBy('fecha', 'asc'));
+    
     unsubscribeMessages = onSnapshot(q, (snapshot) => {
         const mensajes = [];
-        snapshot.forEach(doc => { mensajes.push({ id: doc.id, ...doc.data() }); });
-        mensajes.sort((a, b) => a.fecha - b.fecha);
+        snapshot.forEach(doc => { 
+            mensajes.push({ id: doc.id, ...doc.data() }); 
+        });
         
         const container = document.getElementById('messages');
         if (!container) return;
+        
         if (mensajes.length === 0) {
             container.innerHTML = '<div class="empty">💬 No hay mensajes aún. ¡Envía el primero!</div>';
             return;
         }
+        
         container.innerHTML = mensajes.map(msg => {
             let statusIcon = '';
             if (msg.emisor === usuarioActual.uid) {
