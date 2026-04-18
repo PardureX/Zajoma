@@ -2,10 +2,11 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Zajoma Chat</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: #4A90E2;
@@ -14,11 +15,13 @@
             flex-direction: column;
             overflow: hidden;
         }
+        
         .contacts-screen {
             display: flex;
             flex-direction: column;
             height: 100%;
         }
+        
         .app-header {
             background: #2E75B6;
             padding: 15px 16px;
@@ -27,24 +30,43 @@
             justify-content: space-between;
             color: white;
         }
-        .app-header h2 { font-size: 18px; flex: 1; text-align: center; }
+        .app-header h2 { 
+            font-size: 18px; 
+            flex: 1;
+            text-align: center;
+        }
+        .header-buttons { 
+            display: flex; 
+            gap: 15px; 
+            align-items: center;
+        }
         .profile-btn {
             background: none;
             border: none;
             cursor: pointer;
+            padding: 0;
             width: 40px;
             height: 40px;
             border-radius: 50%;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .profile-avatar { width: 100%; height: 100%; object-fit: cover; }
+        .profile-avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
         .refresh-btn {
             background: none;
             border: none;
             color: white;
             font-size: 24px;
             cursor: pointer;
+            padding: 5px;
         }
+        
         .contacts-list {
             flex: 1;
             overflow-y: auto;
@@ -60,7 +82,10 @@
             margin: 4px 0;
             border-radius: 12px;
             cursor: pointer;
+            position: relative;
+            transition: background 0.2s;
         }
+        .contact:active { background: #E8F0FE; }
         .contact-avatar {
             width: 50px;
             height: 50px;
@@ -81,7 +106,11 @@
             align-items: center;
             justify-content: center;
             padding: 0 5px;
+            position: absolute;
+            top: 10px;
+            right: 15px;
         }
+        
         .logout-footer {
             padding: 12px;
             text-align: center;
@@ -96,6 +125,7 @@
             width: 100%;
             cursor: pointer;
         }
+        
         .chat-screen {
             display: none;
             flex-direction: column;
@@ -116,6 +146,7 @@
             color: white;
             font-size: 28px;
             cursor: pointer;
+            padding: 5px;
         }
         .chat-header-avatar {
             width: 40px;
@@ -126,6 +157,7 @@
         .chat-header-info { flex: 1; }
         .chat-header-info h3 { font-size: 16px; }
         .chat-header-info p { font-size: 11px; opacity: 0.8; }
+        
         .messages {
             flex: 1;
             overflow-y: auto;
@@ -154,6 +186,29 @@
             border-bottom-left-radius: 4px;
             border: 1px solid #ddd;
         }
+        .message-time {
+            font-size: 9px;
+            opacity: 0.7;
+            margin-top: 5px;
+            text-align: right;
+        }
+        
+        .emoji-bar {
+            display: flex;
+            gap: 6px;
+            padding: 8px 12px;
+            background: #E8F0FE;
+            border-top: 1px solid #ccc;
+            overflow-x: auto;
+        }
+        .emoji-bar button {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 30px;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 20px;
+        }
         .input-area {
             display: flex;
             padding: 10px 12px;
@@ -167,6 +222,7 @@
             border: 1px solid #ccc;
             outline: none;
             font-size: 16px;
+            background: white;
         }
         .input-area button {
             padding: 12px 20px;
@@ -175,8 +231,10 @@
             border: none;
             border-radius: 25px;
             cursor: pointer;
+            font-size: 15px;
             font-weight: bold;
         }
+        
         .empty { text-align: center; color: #888; padding: 40px; }
         .toast {
             position: fixed;
@@ -191,10 +249,12 @@
             z-index: 200;
             display: none;
         }
+        
         .modal {
             display: none;
             position: fixed;
             top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             background: rgba(0,0,0,0.5);
@@ -209,6 +269,22 @@
             max-width: 350px;
             padding: 20px;
             text-align: center;
+        }
+        .modal-content input, .modal-content select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        .modal-content button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #2E75B6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
         }
         .avatar-grid {
             display: grid;
@@ -227,7 +303,6 @@
             object-fit: cover;
         }
         .avatar-option.selected { border-color: #2E75B6; }
-        button { cursor: pointer; }
     </style>
 </head>
 <body>
@@ -235,7 +310,7 @@
 <div id="contactsScreen" class="contacts-screen">
     <div class="app-header">
         <button class="profile-btn" id="profileBtn">
-            <img class="profile-avatar" id="profileAvatar" src="">
+            <img class="profile-avatar" id="profileAvatar" src="" alt="Perfil">
         </button>
         <h2>💬 Zajoma Chat</h2>
         <button class="refresh-btn" id="refreshBtn">🔄</button>
@@ -260,6 +335,24 @@
     <div class="messages" id="messages">
         <div class="empty">💬 No hay mensajes aún</div>
     </div>
+    <div class="emoji-bar">
+        <button data-emoji="😊">😊</button>
+        <button data-emoji="😂">😂</button>
+        <button data-emoji="❤️">❤️</button>
+        <button data-emoji="😍">😍</button>
+        <button data-emoji="👍">👍</button>
+        <button data-emoji="🎉">🎉</button>
+        <button data-emoji="😭">😭</button>
+        <button data-emoji="😎">😎</button>
+        <button data-emoji="🤔">🤔</button>
+        <button data-emoji="😡">😡</button>
+        <button data-emoji="🥺">🥺</button>
+        <button data-emoji="💀">💀</button>
+        <button data-emoji="🔥">🔥</button>
+        <button data-emoji="✨">✨</button>
+        <button data-emoji="⭐">⭐</button>
+        <button data-emoji="💯">💯</button>
+    </div>
     <div class="input-area">
         <input type="text" id="messageInput" placeholder="Escribe un mensaje...">
         <button id="sendBtn">Enviar</button>
@@ -273,6 +366,10 @@
         <h3>👤 Mi Perfil</h3>
         <div id="avatarSelector" class="avatar-grid"></div>
         <input type="text" id="editNombre" placeholder="Nombre">
+        <select id="editFondo">
+            <option value="#ECF5FF">Claro</option>
+            <option value="#1a1a2e">Oscuro</option>
+        </select>
         <button id="guardarPerfilBtn">Guardar</button>
         <button id="cerrarModalBtn">Cancelar</button>
     </div>
@@ -281,8 +378,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, query, getDocs, addDoc, onSnapshot, where, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-import { getDatabase, ref, onDisconnect, set } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, where, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyC4-_JQsS625vRMkmM4PeVupxX97FVBe5U",
@@ -290,26 +386,24 @@ const firebaseConfig = {
     projectId: "zajoma-8553f",
     storageBucket: "zajoma-8553f.firebasestorage.app",
     messagingSenderId: "390203043975",
-    appId: "1:390203043975:web:fe5e2f618ee285ce3bc822",
-    databaseURL: "https://zajoma-8553f-default-rtdb.firebaseio.com/"
+    appId: "1:390203043975:web:fe5e2f618ee285ce3bc822"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const rtdb = getDatabase(app);
 
 let usuarioActual = null;
 let chatActivo = null;
 let unsubscribeMessages = null;
-let unsubscribeContactos = null;
+let unsubscribeGlobal = null;
 let avatarSeleccionado = 0;
 let mensajesNoLeidos = {};
 let contactosCache = [];
 
 const avatares = [];
 for (let i = 1; i <= 29; i++) {
-    avatares.push({ img: `avatars/avatar${i}.png` });
+    avatares.push({ img: `avatars/avatar${i}.png`, color: "#" + Math.floor(Math.random()*16777215).toString(16) });
 }
 
 function cargarAvatares(selectedImg) {
@@ -335,16 +429,96 @@ function seleccionarAvatar(idx) {
     });
 }
 
-function actualizarUIcontactos() {
-    const container = document.getElementById('contactsList');
-    if (!container) return;
-    
-    if (contactosCache.length === 0) {
-        container.innerHTML = '<div class="empty">No hay contactos aún.</div>';
-        return;
+async function marcarComoLeidos(contactoUid) {
+    if (!contactoUid) return;
+    const chatId = [usuarioActual.uid, contactoUid].sort().join('_');
+    const q = query(collection(db, 'mensajes'), where('chatId', '==', chatId), where('emisor', '==', contactoUid), where('leido', '==', false));
+    const snapshot = await getDocs(q);
+    snapshot.forEach(async (docSnap) => {
+        await updateDoc(doc(db, 'mensajes', docSnap.id), { leido: true });
+    });
+}
+
+function actualizarTodosLosBadges() {
+    contactosCache.forEach(contacto => {
+        const contactoDiv = document.querySelector(`.contact[data-uid="${contacto.uid}"]`);
+        if (contactoDiv) {
+            const badgeExistente = contactoDiv.querySelector('.unread-badge');
+            const noLeidos = mensajesNoLeidos[contacto.uid] || 0;
+            if (noLeidos > 0) {
+                if (badgeExistente) {
+                    badgeExistente.textContent = noLeidos;
+                } else {
+                    const badge = document.createElement('div');
+                    badge.className = 'unread-badge';
+                    badge.textContent = noLeidos;
+                    contactoDiv.appendChild(badge);
+                }
+            } else if (badgeExistente) {
+                badgeExistente.remove();
+            }
+        }
+    });
+}
+
+function iniciarListenerGlobal() {
+    if (unsubscribeGlobal) unsubscribeGlobal();
+    const q = query(collection(db, 'mensajes'), orderBy('fecha', 'asc'));
+    unsubscribeGlobal = onSnapshot(q, (snapshot) => {
+        const nuevosNoLeidos = {};
+        snapshot.forEach(doc => {
+            const msg = doc.data();
+            if (msg.emisor !== usuarioActual.uid && !msg.leido) {
+                nuevosNoLeidos[msg.emisor] = (nuevosNoLeidos[msg.emisor] || 0) + 1;
+            }
+        });
+        mensajesNoLeidos = nuevosNoLeidos;
+        actualizarTodosLosBadges();
+    });
+}
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    usuarioActual = user;
+    const userRef = doc(db, 'usuarios', user.uid);
+    const userDoc = await getDoc(userRef);
+    if (!userDoc.exists()) {
+        await setDoc(userRef, {
+            nombre: user.email.split('@')[0], email: user.email, uid: user.uid,
+            avatarImg: avatares[0].img, avatarColor: avatares[0].color, online: true, fondoChat: '#ECF5FF'
+        });
+    } else {
+        await updateDoc(userRef, { online: true });
     }
     
-    container.innerHTML = contactosCache.map(c => {
+    const userData = userDoc.data();
+    const avatarImg = userData?.avatarImg || avatares[0].img;
+    const profileAvatar = document.getElementById('profileAvatar');
+    if (profileAvatar) profileAvatar.src = avatarImg;
+    
+    await cargarContactos();
+    iniciarListenerGlobal();
+});
+
+async function cargarContactos() {
+    const snapshot = await getDocs(collection(db, 'usuarios'));
+    const contactos = [];
+    snapshot.forEach(doc => {
+        if (doc.id !== usuarioActual.uid) {
+            contactos.push({
+                uid: doc.id, nombre: doc.data().nombre, online: doc.data().online || false,
+                avatarImg: doc.data().avatarImg || avatares[0].img
+            });
+        }
+    });
+    contactosCache = contactos;
+    const container = document.getElementById('contactsList');
+    if (!container) return;
+    if (contactos.length === 0) {
+        container.innerHTML = '<div class="empty">No hay contactos aún.<br>Comparte el enlace con amigos</div>';
+        return;
+    }
+    container.innerHTML = contactos.map(c => {
         const noLeidos = mensajesNoLeidos[c.uid] || 0;
         const badgeHtml = noLeidos > 0 ? `<div class="unread-badge">${noLeidos}</div>` : '';
         return `
@@ -358,89 +532,53 @@ function actualizarUIcontactos() {
             </div>
         `;
     }).join('');
-    
     document.querySelectorAll('.contact').forEach(el => {
         el.addEventListener('click', () => {
             const uid = el.getAttribute('data-uid');
-            const contacto = contactosCache.find(c => c.uid === uid);
-            if (uid && contacto) abrirChat(uid, contacto.nombre);
+            const nombre = el.querySelector('.contact-name')?.innerText;
+            if (uid && nombre) abrirChat(uid, nombre);
         });
     });
 }
 
-function iniciarListenerContactos() {
-    if (unsubscribeContactos) unsubscribeContactos();
-    
-    const q = query(collection(db, 'usuarios'));
-    unsubscribeContactos = onSnapshot(q, (snapshot) => {
-        const nuevosContactos = [];
-        snapshot.forEach(doc => {
-            if (doc.id !== usuarioActual?.uid) {
-                nuevosContactos.push({
-                    uid: doc.id,
-                    nombre: doc.data().nombre,
-                    online: doc.data().online || false,
-                    avatarImg: doc.data().avatarImg || avatares[0].img
-                });
-            }
-        });
-        contactosCache = nuevosContactos;
-        actualizarUIcontactos();
-        
-        if (chatActivo) {
-            const contacto = contactosCache.find(c => c.uid === chatActivo);
-            if (contacto) {
-                document.getElementById('chatStatus').innerHTML = contacto.online ? '🟢 En línea' : '⚫ Desconectado';
-            }
-        }
-    });
-}
-
-async function configurarOnDisconnect(uid) {
-    const userStatusRef = ref(rtdb, `status/${uid}`);
-    await onDisconnect(userStatusRef).set({ online: false });
-    await set(userStatusRef, { online: true });
-    
-    // Escuchar cambios en RTDB y sincronizar con Firestore
-    const rtdbRef = ref(rtdb, `status/${uid}/online`);
-    onSnapshot(rtdbRef, (snapshot) => {
-        const online = snapshot.val();
-        if (online !== undefined) {
-            updateDoc(doc(db, 'usuarios', uid), { online: online }).catch(console.error);
-        }
-    });
+async function actualizarContactos() {
+    const toast = document.getElementById('toast');
+    if (toast) toast.style.display = 'block';
+    await cargarContactos();
+    if (toast) setTimeout(() => toast.style.display = 'none', 1500);
 }
 
 async function abrirChat(uid, nombre) {
     if (unsubscribeMessages) unsubscribeMessages();
     chatActivo = uid;
-    
+    if (mensajesNoLeidos[uid]) {
+        delete mensajesNoLeidos[uid];
+        actualizarTodosLosBadges();
+        await marcarComoLeidos(uid);
+    }
     document.getElementById('contactsScreen').style.display = 'none';
     document.getElementById('chatScreen').style.display = 'flex';
     document.getElementById('chatNombre').innerText = nombre;
-    
-    const contacto = contactosCache.find(c => c.uid === uid);
-    document.getElementById('chatStatus').innerHTML = contacto?.online ? '🟢 En línea' : '⚫ Desconectado';
-    document.getElementById('chatAvatar').src = contacto?.avatarImg || avatares[0].img;
+    const contactoDoc = await getDoc(doc(db, 'usuarios', uid));
+    const contactoData = contactoDoc.data();
+    document.getElementById('chatStatus').innerHTML = contactoData?.online ? '🟢 En línea' : '⚫ Desconectado';
+    document.getElementById('chatAvatar').src = contactoData?.avatarImg || avatares[0].img;
     document.getElementById('messages').innerHTML = '';
-    
     const chatId = [usuarioActual.uid, uid].sort().join('_');
-    const q = query(collection(db, 'mensajes'), where('chatId', '==', chatId));
+    const q = query(collection(db, 'mensajes'), where('chatId', '==', chatId), orderBy('fecha', 'asc'));
     unsubscribeMessages = onSnapshot(q, (snapshot) => {
         const mensajes = [];
         snapshot.forEach(doc => { mensajes.push({ id: doc.id, ...doc.data() }); });
-        mensajes.sort((a, b) => a.fecha - b.fecha);
-        
         const container = document.getElementById('messages');
         if (!container) return;
         if (mensajes.length === 0) {
-            container.innerHTML = '<div class="empty">💬 No hay mensajes aún.</div>';
+            container.innerHTML = '<div class="empty">💬 No hay mensajes aún. ¡Envía el primero!</div>';
             return;
         }
         container.innerHTML = mensajes.map(msg => {
             let statusIcon = '';
             if (msg.emisor === usuarioActual.uid) {
-                statusIcon = msg.leido ? '✓✓' : '✓';
+                statusIcon = msg.leido ? '<span style="color:#4CAF50;">✓✓</span>' : '<span style="color:#aaa;">✓</span>';
             }
             return `
                 <div class="message ${msg.emisor === usuarioActual.uid ? 'sent' : 'received'}">
@@ -461,11 +599,9 @@ async function enviarMensaje() {
     const input = document.getElementById('messageInput');
     const texto = input.value.trim();
     if (!texto || !chatActivo) return;
-    
     const userDoc = await getDoc(doc(db, 'usuarios', usuarioActual.uid));
     const nombre = userDoc.data()?.nombre || usuarioActual.email.split('@')[0];
     const chatId = [usuarioActual.uid, chatActivo].sort().join('_');
-    
     await addDoc(collection(db, 'mensajes'), {
         chatId, emisor: usuarioActual.uid, receptor: chatActivo,
         nombre, texto, fecha: Date.now(), leido: false
@@ -480,16 +616,17 @@ function cerrarChat() {
     chatActivo = null;
 }
 
-async function actualizarContactos() {
-    const toast = document.getElementById('toast');
-    if (toast) toast.style.display = 'block';
-    setTimeout(() => toast.style.display = 'none', 1500);
+function insertarEmoji(emoji) {
+    const input = document.getElementById('messageInput');
+    input.value += emoji;
+    input.focus();
 }
 
 async function abrirModalPerfil() {
     const userDoc = await getDoc(doc(db, 'usuarios', usuarioActual.uid));
     const data = userDoc.data();
     document.getElementById('editNombre').value = data?.nombre || '';
+    document.getElementById('editFondo').value = data?.fondoChat || '#ECF5FF';
     cargarAvatares(data?.avatarImg || avatares[0].img);
     document.getElementById('perfilModal').style.display = 'flex';
 }
@@ -498,49 +635,23 @@ function cerrarModalPerfil() { document.getElementById('perfilModal').style.disp
 
 async function guardarPerfil() {
     const nombre = document.getElementById('editNombre').value;
+    const fondo = document.getElementById('editFondo').value;
     const avatar = avatares[avatarSeleccionado];
-    await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { nombre, avatarImg: avatar.img });
+    await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { nombre, fondoChat: fondo, avatarImg: avatar.img, avatarColor: avatar.color });
+    
     const profileAvatar = document.getElementById('profileAvatar');
     if (profileAvatar) profileAvatar.src = avatar.img;
+    
     cerrarModalPerfil();
+    await cargarContactos();
 }
 
 async function cerrarSesion() {
-    if (unsubscribeContactos) unsubscribeContactos();
-    const userStatusRef = ref(rtdb, `status/${usuarioActual.uid}`);
-    await onDisconnect(userStatusRef).cancel();
-    await set(userStatusRef, { online: false });
+    if (unsubscribeGlobal) unsubscribeGlobal();
     await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { online: false });
     await signOut(auth);
     window.location.href = 'index.html';
 }
-
-onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location.href = 'index.html'; return; }
-    usuarioActual = user;
-    
-    const userRef = doc(db, 'usuarios', user.uid);
-    const userDoc = await getDoc(userRef);
-    
-    if (!userDoc.exists()) {
-        await setDoc(userRef, {
-            nombre: user.email.split('@')[0], 
-            email: user.email, 
-            uid: user.uid,
-            avatarImg: avatares[0].img, 
-            online: true
-        });
-    } else {
-        await updateDoc(userRef, { online: true });
-    }
-    
-    await configurarOnDisconnect(user.uid);
-    
-    const profileAvatar = document.getElementById('profileAvatar');
-    if (profileAvatar) profileAvatar.src = userDoc.data()?.avatarImg || avatares[0].img;
-    
-    iniciarListenerContactos();
-});
 
 document.getElementById('refreshBtn')?.addEventListener('click', actualizarContactos);
 document.getElementById('profileBtn')?.addEventListener('click', abrirModalPerfil);
@@ -550,6 +661,9 @@ document.getElementById('sendBtn')?.addEventListener('click', enviarMensaje);
 document.getElementById('messageInput')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') enviarMensaje(); });
 document.getElementById('guardarPerfilBtn')?.addEventListener('click', guardarPerfil);
 document.getElementById('cerrarModalBtn')?.addEventListener('click', cerrarModalPerfil);
+document.querySelectorAll('.emoji-bar button').forEach(btn => {
+    btn.addEventListener('click', () => insertarEmoji(btn.getAttribute('data-emoji')));
+});
 
 window.seleccionarAvatar = seleccionarAvatar;
 </script>
