@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Zajoma — Muro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --azul: #2E75B6;
+            --azul-oscuro: #1A4A7A;
+            --azul-claro: #ECF5FF;
+            --acento: #FF6B6B;
+            --verde: #4CAF50;
+            --gris: #888;
+            --blanco: #fff;
+            --fondo: #E8F2FB;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--fondo);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* HEADER */
+        .app-header {
+            background: var(--azul);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+        .app-header h2 {
+            font-size: 18px;
+            font-weight: 800;
+            flex: 1;
+            text-align: center;
+            letter-spacing: 0.3px;
+        }
+        .profile-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.4);
+        }
+        .profile-avatar { width: 100%; height: 100%; object-fit: cover; }
+        .header-placeholder { width: 38px; }
+
+        /* FEED */
+        .feed {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 12px 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* NUEVA PUBLICACIÓN */
+        .nueva-publicacion {
+            background: white;
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 2px 10px rgba(46,117,182,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .nueva-pub-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .mi-avatar-mini {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--azul-claro);
+            flex-shrink: 0;
+        }
+        .nueva-pub-input {
+            flex: 1;
+            border: none;
+            background: var(--azul-claro);
+            border-radius: 20px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-family: 'Nunito', sans-serif;
+            outline: none;
+            color: #333;
+            resize: none;
+            min-height: 40px;
+            max-height: 120px;
+        }
+        .nueva-pub-input::placeholder { color: #aaa; }
+        .nueva-pub-actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+        }
+        .char-count {
+            font-size: 11px;
+            color: var(--gris);
+        }
+        .char-count.warning { color: #FF6B6B; }
+        .publicar-btn {
+            background: var(--azul);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Nunito', sans-serif;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+        .publicar-btn:active { transform: scale(0.97); }
+        .publicar-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* POSTS */
+        .post {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 2px 10px rgba(46,117,182,0.08);
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .post-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .post-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--azul-claro);
+            flex-shrink: 0;
+        }
+        .post-meta { flex: 1; }
+        .post-autor {
+            font-weight: 800;
+            font-size: 14px;
+            color: var(--azul-oscuro);
+        }
+        .post-fecha {
+            font-size: 11px;
+            color: var(--gris);
+            margin-top: 1px;
+        }
+        .post-menu-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--gris);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            line-height: 1;
+        }
+        .post-menu-btn:hover { background: var(--azul-claro); }
+
+        .post-texto {
+            font-size: 15px;
+            color: #222;
+            line-height: 1.55;
+            margin-bottom: 14px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .post-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
+        }
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: none;
+            border: none;
+            font-size: 13px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            color: var(--gris);
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 20px;
+            transition: background 0.15s, color 0.15s;
+        }
+        .action-btn:hover { background: var(--azul-claro); }
+        .action-btn.liked { color: var(--acento); }
+        .action-btn.liked:hover { background: #fff0f0; }
+        .action-btn .icon { font-size: 16px; }
+        .action-btn.comentar-btn { margin-left: auto; }
+
+        /* COMENTARIOS */
+        .comentarios-section {
+            margin-top: 12px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .comentarios-section.visible { display: flex; }
+
+        .comentario {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+        .comentario-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .comentario-burbuja {
+            background: var(--azul-claro);
+            border-radius: 12px;
+            padding: 8px 12px;
+            flex: 1;
+        }
+        .comentario-autor {
+            font-weight: 800;
+            font-size: 12px;
+            color: var(--azul-oscuro);
+        }
+        .comentario-texto {
+            font-size: 13px;
+            color: #333;
+            margin-top: 2px;
+            word-break: break-word;
+        }
+        .comentario-fecha {
+            font-size: 10px;
+            color: var(--gris);
+            margin-top: 3px;
+        }
+
+        .nuevo-comentario {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 4px;
+        }
+        .comentario-input {
+            flex: 1;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 20px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-family: 'Nunito', sans-serif;
+            outline: none;
+        }
+        .comentario-input:focus { border-color: var(--azul); }
+        .enviar-comentario-btn {
+            background: var(--azul);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: opacity 0.2s;
+        }
+        .enviar-comentario-btn:disabled { opacity: 0.5; }
+
+        /* EMPTY STATE */
+        .empty-feed {
+            text-align: center;
+            color: var(--gris);
+            padding: 40px 20px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        .empty-feed .big-emoji { font-size: 48px; margin-bottom: 12px; display: block; }
+
+        /* BARRA NAVEGACIÓN */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            border-top: 1px solid #ddd;
+            z-index: 100;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+        }
+        .nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            gap: 3px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--gris);
+            font-family: 'Nunito', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .nav-btn .nav-icon { font-size: 22px; }
+        .nav-btn.active { color: var(--azul); }
+
+        /* MENU CONTEXTUAL (borrar post) */
+        .context-menu {
+            position: fixed;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 500;
+            overflow: hidden;
+            display: none;
+        }
+        .context-menu.visible { display: block; }
+        .context-menu-item {
+            padding: 14px 20px;
+            font-size: 14px;
+            font-family: 'Nunito', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .context-menu-item:hover { background: var(--azul-claro); }
+        .context-menu-item.danger { color: #e63946; }
+
+        /* OVERLAY para cerrar menú */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 400;
+            display: none;
+        }
+        .overlay.visible { display: block; }
+
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 12px;
+            font-family: 'Nunito', sans-serif;
+            z-index: 600;
+            display: none;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-header">
+    <div class="header-placeholder"></div>
+    <h2>🗞️ Muro</h2>
+    <button class="profile-btn" id="profileBtn">
+        <img class="profile-avatar" id="profileAvatar" src="" alt="Perfil">
+    </button>
+</div>
+
+<div class="feed" id="feed">
+    <!-- Nueva publicación -->
+    <div class="nueva-publicacion">
+        <div class="nueva-pub-top">
+            <img class="mi-avatar-mini" id="miAvatarMini" src="" alt="Yo">
+            <textarea class="nueva-pub-input" id="nuevaPublicacionInput" placeholder="¿Qué estás pensando?" rows="1" maxlength="300"></textarea>
+        </div>
+        <div class="nueva-pub-actions">
+            <span class="char-count" id="charCount">0/300</span>
+            <button class="publicar-btn" id="publicarBtn">Publicar</button>
+        </div>
+    </div>
+
+    <div id="postsContainer">
+        <div class="empty-feed">
+            <span class="big-emoji">🌟</span>
+            Cargando publicaciones...
+        </div>
+    </div>
+</div>
+
+<!-- Menú contextual -->
+<div class="overlay" id="overlay"></div>
+<div class="context-menu" id="contextMenu">
+    <div class="context-menu-item danger" id="eliminarPostBtn">🗑️ Eliminar publicación</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Barra de navegación -->
+<nav class="nav-bar">
+    <a class="nav-btn" href="chat.html">
+        <span class="nav-icon">💬</span>
+        Chats
+    </a>
+    <a class="nav-btn active" href="muro.html">
+        <span class="nav-icon">🗞️</span>
+        Muro
+    </a>
+</nav>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+    getFirestore, doc, getDoc, collection, query, addDoc, onSnapshot,
+    orderBy, updateDoc, deleteDoc, arrayUnion, arrayRemove, getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyC4-_JQsS625vRMkmM4PeVupxX97FVBe5U",
+    authDomain: "zajoma-8553f.firebaseapp.com",
+    projectId: "zajoma-8553f",
+    storageBucket: "zajoma-8553f.firebasestorage.app",
+    messagingSenderId: "390203043975",
+    appId: "1:390203043975:web:fe5e2f618ee285ce3bc822",
+    databaseURL: "https://zajoma-8553f-default-rtdb.firebaseio.com"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let usuarioActual = null;
+let datosUsuario = null;
+let postMenuActivo = null; // id del post con menú abierto
+
+function escaparHTML(texto) {
+    const div = document.createElement('div');
+    div.textContent = texto;
+    return div.innerHTML;
+}
+
+function mostrarToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2000);
+}
+
+function tiempoRelativo(fecha) {
+    const diff = Date.now() - fecha;
+    const min = Math.floor(diff / 60000);
+    if (min < 1) return 'ahora mismo';
+    if (min < 60) return `hace ${min} min`;
+    const h = Math.floor(min / 60);
+    if (h < 24) return `hace ${h}h`;
+    const d = Math.floor(h / 24);
+    return `hace ${d}d`;
+}
+
+// ── NUEVA PUBLICACIÓN ──────────────────────────────────
+const input = document.getElementById('nuevaPublicacionInput');
+const charCount = document.getElementById('charCount');
+const publicarBtn = document.getElementById('publicarBtn');
+
+input.addEventListener('input', () => {
+    const len = input.value.length;
+    charCount.textContent = `${len}/300`;
+    charCount.classList.toggle('warning', len > 260);
+    // auto-resize
+    input.style.height = 'auto';
+    input.style.height = input.scrollHeight + 'px';
+});
+
+publicarBtn.addEventListener('click', async () => {
+    const texto = input.value.trim();
+    if (!texto || !usuarioActual) return;
+    publicarBtn.disabled = true;
+    try {
+        await addDoc(collection(db, 'publicaciones'), {
+            autorUid: usuarioActual.uid,
+            autor: datosUsuario?.nombre || usuarioActual.email.split('@')[0],
+            avatarImg: datosUsuario?.avatarImg || '',
+            texto,
+            fecha: Date.now(),
+            likes: [],
+            comentariosCount: 0
+        });
+        input.value = '';
+        input.style.height = 'auto';
+        charCount.textContent = '0/300';
+        mostrarToast('✅ Publicado');
+    } catch (e) {
+        console.error(e);
+        mostrarToast('❌ Error al publicar');
+    } finally {
+        publicarBtn.disabled = false;
+    }
+});
+
+// ── LISTENER DE POSTS EN TIEMPO REAL ──────────────────
+function iniciarFeed() {
+    const q = query(collection(db, 'publicaciones'), orderBy('fecha', 'desc'));
+    onSnapshot(q, (snapshot) => {
+        const posts = [];
+        snapshot.forEach(d => posts.push({ id: d.id, ...d.data() }));
+        renderPosts(posts);
+    });
+}
+
+function renderPosts(posts) {
+    const container = document.getElementById('postsContainer');
+    if (posts.length === 0) {
+        container.innerHTML = `
+            <div class="empty-feed">
+                <span class="big-emoji">✨</span>
+                ¡Sé el primero en publicar algo!
+            </div>`;
+        return;
+    }
+    container.innerHTML = posts.map(p => {
+        const esMio = p.autorUid === usuarioActual.uid;
+        const yoDiLike = (p.likes || []).includes(usuarioActual.uid);
+        const numLikes = (p.likes || []).length;
+        return `
+            <div class="post" data-id="${p.id}">
+                <div class="post-header">
+                    <img class="post-avatar" src="${escaparHTML(p.avatarImg || '')}" alt="Avatar" onerror="this.src='avatars/avatar1.png'">
+                    <div class="post-meta">
+                        <div class="post-autor">${escaparHTML(p.autor)}</div>
+                        <div class="post-fecha">${tiempoRelativo(p.fecha)}</div>
+                    </div>
+                    ${esMio ? `<button class="post-menu-btn" data-id="${p.id}">⋯</button>` : ''}
+                </div>
+                <div class="post-texto">${escaparHTML(p.texto)}</div>
+                <div class="post-actions">
+                    <button class="action-btn like-btn ${yoDiLike ? 'liked' : ''}" data-id="${p.id}">
+                        <span class="icon">${yoDiLike ? '❤️' : '🤍'}</span>
+                        <span class="like-count">${numLikes > 0 ? numLikes : ''}</span>
+                    </button>
+                    <button class="action-btn comentar-btn" data-id="${p.id}">
+                        <span class="icon">💬</span>
+                        <span>${p.comentariosCount > 0 ? p.comentariosCount : 'Comentar'}</span>
+                    </button>
+                </div>
+                <div class="comentarios-section" id="comentarios-${p.id}">
+                    <div class="comentarios-lista" id="lista-${p.id}"></div>
+                    <div class="nuevo-comentario">
+                        <img class="comentario-avatar" src="${escaparHTML(datosUsuario?.avatarImg || '')}" alt="Yo" onerror="this.src='avatars/avatar1.png'">
+                        <input class="comentario-input" placeholder="Escribe un comentario..." data-id="${p.id}">
+                        <button class="enviar-comentario-btn" data-id="${p.id}">➤</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Event listeners de likes
+    document.querySelectorAll('.like-btn').forEach(btn => {
+        btn.addEventListener('click', () => toggleLike(btn.dataset.id));
+    });
+
+    // Event listeners de comentarios (toggle sección)
+    document.querySelectorAll('.comentar-btn').forEach(btn => {
+        btn.addEventListener('click', () => toggleComentarios(btn.dataset.id));
+    });
+
+    // Event listeners de enviar comentario
+    document.querySelectorAll('.enviar-comentario-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const inputEl = document.querySelector(`.comentario-input[data-id="${btn.dataset.id}"]`);
+            if (inputEl) enviarComentario(btn.dataset.id, inputEl);
+        });
+    });
+    document.querySelectorAll('.comentario-input').forEach(inp => {
+        inp.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') enviarComentario(inp.dataset.id, inp);
+        });
+    });
+
+    // Event listeners menú de borrar (solo mis posts)
+    document.querySelectorAll('.post-menu-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            abrirMenuPost(btn.dataset.id, e);
+        });
+    });
+}
+
+// ── LIKES ──────────────────────────────────────────────
+async function toggleLike(postId) {
+    const postRef = doc(db, 'publicaciones', postId);
+    try {
+        const snap = await getDoc(postRef);
+        const likes = snap.data()?.likes || [];
+        const yaDiLike = likes.includes(usuarioActual.uid);
+        await updateDoc(postRef, {
+            likes: yaDiLike ? arrayRemove(usuarioActual.uid) : arrayUnion(usuarioActual.uid)
+        });
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+// ── COMENTARIOS ────────────────────────────────────────
+const comentariosAbiertos = new Set();
+const unsubscribeComentarios = {};
+
+function toggleComentarios(postId) {
+    const section = document.getElementById(`comentarios-${postId}`);
+    if (!section) return;
+    if (comentariosAbiertos.has(postId)) {
+        section.classList.remove('visible');
+        comentariosAbiertos.delete(postId);
+        if (unsubscribeComentarios[postId]) {
+            unsubscribeComentarios[postId]();
+            delete unsubscribeComentarios[postId];
+        }
+    } else {
+        section.classList.add('visible');
+        comentariosAbiertos.add(postId);
+        cargarComentarios(postId);
+    }
+}
+
+function cargarComentarios(postId) {
+    const q = query(
+        collection(db, 'publicaciones', postId, 'comentarios'),
+        orderBy('fecha', 'asc')
+    );
+    unsubscribeComentarios[postId] = onSnapshot(q, (snapshot) => {
+        const lista = document.getElementById(`lista-${postId}`);
+        if (!lista) return;
+        if (snapshot.empty) {
+            lista.innerHTML = '<div style="font-size:12px;color:#aaa;text-align:center;padding:4px 0;">Sin comentarios aún</div>';
+            return;
+        }
+        lista.innerHTML = snapshot.docs.map(d => {
+            const c = d.data();
+            return `
+                <div class="comentario">
+                    <img class="comentario-avatar" src="${escaparHTML(c.avatarImg || '')}" alt="Avatar" onerror="this.src='avatars/avatar1.png'">
+                    <div class="comentario-burbuja">
+                        <div class="comentario-autor">${escaparHTML(c.autor)}</div>
+                        <div class="comentario-texto">${escaparHTML(c.texto)}</div>
+                        <div class="comentario-fecha">${tiempoRelativo(c.fecha)}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    });
+}
+
+async function enviarComentario(postId, inputEl) {
+    const texto = inputEl.value.trim();
+    if (!texto) return;
+    inputEl.value = '';
+    try {
+        await addDoc(collection(db, 'publicaciones', postId, 'comentarios'), {
+            autorUid: usuarioActual.uid,
+            autor: datosUsuario?.nombre || usuarioActual.email.split('@')[0],
+            avatarImg: datosUsuario?.avatarImg || '',
+            texto,
+            fecha: Date.now()
+        });
+        // Actualizamos el contador en el post
+        await updateDoc(doc(db, 'publicaciones', postId), {
+            comentariosCount: (await getDoc(doc(db, 'publicaciones', postId))).data()?.comentariosCount + 1 || 1
+        });
+    } catch (e) {
+        console.error(e);
+        mostrarToast('❌ Error al comentar');
+    }
+}
+
+// ── MENÚ BORRAR POST ───────────────────────────────────
+function abrirMenuPost(postId, e) {
+    postMenuActivo = postId;
+    const menu = document.getElementById('contextMenu');
+    const overlay = document.getElementById('overlay');
+    menu.style.top = (e.clientY + 4) + 'px';
+    menu.style.right = '16px';
+    menu.classList.add('visible');
+    overlay.classList.add('visible');
+}
+
+function cerrarMenu() {
+    document.getElementById('contextMenu').classList.remove('visible');
+    document.getElementById('overlay').classList.remove('visible');
+    postMenuActivo = null;
+}
+
+document.getElementById('overlay').addEventListener('click', cerrarMenu);
+
+document.getElementById('eliminarPostBtn').addEventListener('click', async () => {
+    if (!postMenuActivo) return;
+    cerrarMenu();
+    try {
+        // Borrar comentarios primero
+        const comentariosSnap = await getDocs(collection(db, 'publicaciones', postMenuActivo, 'comentarios'));
+        await Promise.all(comentariosSnap.docs.map(d => deleteDoc(d.ref)));
+        // Borrar el post
+        await deleteDoc(doc(db, 'publicaciones', postMenuActivo));
+        mostrarToast('🗑️ Publicación eliminada');
+    } catch (e) {
+        console.error(e);
+        mostrarToast('❌ Error al eliminar');
+    }
+});
+
+// ── AUTH ───────────────────────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    usuarioActual = user;
+    try {
+        const userDoc = await getDoc(doc(db, 'usuarios', user.uid));
+        datosUsuario = userDoc.data();
+        const avatarSrc = datosUsuario?.avatarImg || 'avatars/avatar1.png';
+        document.getElementById('profileAvatar').src = avatarSrc;
+        document.getElementById('miAvatarMini').src = avatarSrc;
+        iniciarFeed();
+    } catch (e) {
+        console.error(e);
+        mostrarToast('❌ Error al cargar el perfil');
+    }
+});
+
+document.getElementById('profileBtn').addEventListener('click', () => {
+    window.location.href = 'chat.html';
+});
+</script>
+</body>
+</html>
