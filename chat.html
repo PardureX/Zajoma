@@ -363,8 +363,8 @@
 <div id="chatScreen" class="chat-screen">
     <div class="chat-header">
         <button class="back-btn" id="backBtn">←</button>
-        <img class="chat-header-avatar" id="chatAvatar" src="" alt="Avatar" style="cursor:pointer" id="chatAvatarBtn">
-        <div class="chat-header-info" style="cursor:pointer" id="chatHeaderInfo">
+        <img class="chat-header-avatar" id="chatAvatar" src="" alt="Avatar">
+        <div class="chat-header-info">
             <h3 id="chatNombre">...</h3>
             <p id="chatStatus">...</p>
         </div>
@@ -878,19 +878,6 @@ document.getElementById('cerrarModalBtn')?.addEventListener('click', cerrarModal
 document.querySelectorAll('.emoji-bar button').forEach(btn => {
     btn.addEventListener('click', () => insertarEmoji(btn.getAttribute('data-emoji')));
 });
-
-// ✅ Ir al perfil del contacto tocando su avatar o nombre en el header del chat
-document.getElementById('chatAvatar')?.addEventListener('click', () => {
-    if (chatActivo) window.location.href = `perfil.html?uid=${chatActivo}`;
-});
-document.getElementById('chatHeaderInfo')?.addEventListener('click', () => {
-    if (chatActivo) window.location.href = `perfil.html?uid=${chatActivo}`;
-});
-
-// ✅ Ir a mi propio perfil tocando mi avatar en la pantalla principal
-document.getElementById('profileBtn')?.addEventListener('click', () => {
-    if (usuarioActual) window.location.href = `perfil.html?uid=${usuarioActual.uid}`;
-}, { once: false });
 </script>
 </body>
 </html>
