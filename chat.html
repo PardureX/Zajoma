@@ -430,6 +430,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/fireba
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, updateDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, where, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { getDatabase, ref, set, onDisconnect, onValue } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-messaging.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyC4-_JQsS625vRMkmM4PeVupxX97FVBe5U",
@@ -438,23 +439,87 @@ const firebaseConfig = {
     storageBucket: "zajoma-8553f.firebasestorage.app",
     messagingSenderId: "390203043975",
     appId: "1:390203043975:web:fe5e2f618ee285ce3bc822",
-    // ✅ Necesitas agregar tu databaseURL aquí (la encuentras en Firebase Console > Realtime Database)
     databaseURL: "https://zajoma-8553f-default-rtdb.firebaseio.com"
 };
+
+const VAPID_KEY = "BAQT2HI2RnTY_Ll1Q5CHOWdAnPECAd_O6rh3e8X0OJq7BYmnzCTnP5SnhN0PEzS2gRE_Q9yGqC0SJh-jWjQBH9M17";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const rtdb = getDatabase(app); // ✅ Realtime Database para presencia
+const rtdb = getDatabase(app);
+const messaging = getMessaging(app);
 
 let usuarioActual = null;
-let nombreUsuarioCache = null; // ✅ FIX: cache del nombre para no hacer getDoc en cada envío
+let nombreUsuarioCache = null;
 let chatActivo = null;
 let unsubscribeMessages = null;
 let unsubscribeGlobal = null;
 let avatarSeleccionado = 0;
 let mensajesNoLeidos = {};
 let contactosCache = [];
+
+// ── SONIDO ────────────────────────────────────────────
+const sonidoNotif = new Audio('notificaciones.mp3');
+sonidoNotif.volume = 0.6;
+
+function reproducirSonido() {
+    sonidoNotif.currentTime = 0;
+    sonidoNotif.play().catch(() => {}); // catch silencioso si el navegador bloquea
+}
+
+// ── NOTIFICACIONES DEL NAVEGADOR ──────────────────────
+async function pedirPermisoNotificaciones() {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'granted') {
+        await registrarTokenFCM();
+        return;
+    }
+    if (Notification.permission !== 'denied') {
+        const permiso = await Notification.requestPermission();
+        if (permiso === 'granted') await registrarTokenFCM();
+    }
+}
+
+async function registrarTokenFCM() {
+    try {
+        await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+        if (token && usuarioActual) {
+            await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { fcmToken: token });
+        }
+    } catch (e) {
+        console.warn('FCM token error:', e);
+    }
+}
+
+function mostrarNotificacionNavegador(titulo, cuerpo, uid) {
+    if (Notification.permission !== 'granted') return;
+    if (document.visibilityState === 'visible') return; // solo cuando la pestaña está oculta
+    const notif = new Notification(titulo, {
+        body: cuerpo,
+        icon: 'avatars/avatar1.png',
+        badge: 'avatars/avatar1.png',
+        tag: uid // agrupa notificaciones del mismo usuario
+    });
+    notif.onclick = () => {
+        window.focus();
+        notif.close();
+    };
+}
+
+// Escuchar mensajes FCM cuando la app está en primer plano
+onMessage(messaging, (payload) => {
+    // Si ya estamos en el chat con ese emisor, no mostramos notificación
+    const emisorUid = payload.data?.emisorUid;
+    if (emisorUid && emisorUid === chatActivo) return;
+    reproducirSonido();
+    mostrarNotificacionNavegador(
+        payload.notification?.title || 'Nuevo mensaje',
+        payload.notification?.body || '',
+        emisorUid
+    );
+});
 
 // ✅ FIX: colores fijos por índice, sin Math.random()
 const COLORES_AVATAR = [
@@ -574,15 +639,34 @@ function actualizarTodosLosBadges() {
 
 function iniciarListenerGlobal() {
     if (unsubscribeGlobal) unsubscribeGlobal();
-    // Filtramos solo mensajes donde el receptor es el usuario actual
-    // para no descargar toda la colección
     const q = query(
         collection(db, 'mensajes'),
         where('receptor', '==', usuarioActual.uid),
         where('leido', '==', false)
     );
+    let primeraVez = true; // evitar sonido al cargar mensajes existentes
     unsubscribeGlobal = onSnapshot(q, (snapshot) => {
         const nuevosNoLeidos = {};
+        let hayNuevos = false;
+
+        snapshot.docChanges().forEach(change => {
+            if (change.type === 'added' && !primeraVez) {
+                const msg = change.doc.data();
+                // Solo sonar si no estamos en el chat con ese emisor
+                if (msg.emisor !== chatActivo) {
+                    hayNuevos = true;
+                    mostrarNotificacionNavegador(
+                        msg.nombre || 'Nuevo mensaje',
+                        msg.texto,
+                        msg.emisor
+                    );
+                }
+            }
+        });
+
+        if (hayNuevos) reproducirSonido();
+        primeraVez = false;
+
         snapshot.forEach(d => {
             const msg = d.data();
             nuevosNoLeidos[msg.emisor] = (nuevosNoLeidos[msg.emisor] || 0) + 1;
@@ -619,6 +703,9 @@ onAuthStateChanged(auth, async (user) => {
 
         // ✅ Presencia real con RTDB
         await iniciarPresencia(user.uid);
+
+        // ✅ Pedir permiso de notificaciones
+        await pedirPermisoNotificaciones();
 
         await cargarContactos();
         iniciarListenerGlobal();
