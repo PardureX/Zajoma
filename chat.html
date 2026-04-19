@@ -465,23 +465,37 @@ const sonidoNotif = new Audio('notificaciones.mp3');
 sonidoNotif.volume = 0.6;
 let audioDesbloqueado = false;
 
-// En móvil Android Chrome el audio requiere interacción previa del usuario
-// Este listener lo desbloquea con el primer toque
-function desbloquearAudio() {
-    if (audioDesbloqueado) return;
-    sonidoNotif.play().then(() => {
-        sonidoNotif.pause();
-        sonidoNotif.currentTime = 0;
-        audioDesbloqueado = true;
-    }).catch(() => {});
-}
-document.addEventListener('touchstart', desbloquearAudio, { once: true });
-document.addEventListener('click', desbloquearAudio, { once: true });
-
 function reproducirSonido() {
     if (!audioDesbloqueado) return;
     sonidoNotif.currentTime = 0;
     sonidoNotif.play().catch(() => {});
+}
+
+function mostrarBotonSonido() {
+    // Si ya está desbloqueado o ya existe el botón, no hacer nada
+    if (audioDesbloqueado || document.getElementById('btnSonido')) return;
+    const btn = document.createElement('div');
+    btn.id = 'btnSonido';
+    btn.innerHTML = '🔔 Toca para activar sonido';
+    btn.style.cssText = `
+        position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+        background: #2E75B6; color: white; padding: 10px 20px;
+        border-radius: 25px; font-size: 13px; font-weight: bold;
+        z-index: 999; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        white-space: nowrap;
+    `;
+    btn.addEventListener('click', () => {
+        sonidoNotif.play().then(() => {
+            sonidoNotif.pause();
+            sonidoNotif.currentTime = 0;
+            audioDesbloqueado = true;
+            btn.remove();
+            mostrarToast('🔔 Sonido activado');
+        }).catch(() => {
+            btn.remove();
+        });
+    });
+    document.body.appendChild(btn);
 }
 
 // ── NOTIFICACIONES DEL NAVEGADOR ──────────────────────
@@ -499,7 +513,9 @@ async function pedirPermisoNotificaciones() {
 
 async function registrarTokenFCM() {
     try {
-        await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        await navigator.serviceWorker.register('/Zajoma/firebase-messaging-sw.js', {
+            scope: '/Zajoma/'
+        });
         const token = await getToken(messaging, { vapidKey: VAPID_KEY });
         if (token && usuarioActual) {
             await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { fcmToken: token });
@@ -722,6 +738,9 @@ onAuthStateChanged(auth, async (user) => {
 
         // ✅ Pedir permiso de notificaciones
         await pedirPermisoNotificaciones();
+
+        // ✅ Mostrar botón para desbloquear sonido en móvil
+        mostrarBotonSonido();
 
         await cargarContactos();
         iniciarListenerGlobal();
