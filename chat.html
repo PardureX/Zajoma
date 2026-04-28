@@ -53,7 +53,6 @@
             flex-direction: column;
         }
         
-        /* HEADER ESTILO AURORA */
         .app-header, .chat-header {
             background: rgba(0,0,0,0.4);
             backdrop-filter: blur(12px);
@@ -367,7 +366,6 @@
             transform: scale(0.97);
         }
         
-        /* MODAL PERFIL */
         .modal {
             display: none;
             position: fixed;
@@ -471,7 +469,7 @@
             display: none;
         }
         
-        /* MODAL PARA VER FOTO EN GRANDE */
+        /* CARRUSEL DE FOTOS - VERSIÓN MEJORADA */
         .photo-modal {
             display: none;
             position: fixed;
@@ -487,21 +485,51 @@
             flex-direction: column;
         }
         .photo-modal.visible { display: flex; }
-        .photo-modal img {
-            max-width: 90%;
-            max-height: 70%;
-            border-radius: 24px;
-            border: 2px solid rgba(168,85,247,0.6);
-            box-shadow: 0 0 40px rgba(168,85,247,0.3);
+        
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            height: 80%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
-        .photo-modal .close-photo {
+        
+        .carousel-track {
+            display: flex;
+            transition: transform 0.3s ease-out;
+            will-change: transform;
+        }
+        
+        .carousel-slide {
+            min-width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .carousel-slide img {
+            max-width: 92%;
+            max-height: 80vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 20px;
+            border: 2px solid rgba(168,85,247,0.6);
+            box-shadow: 0 0 40px rgba(168,85,247,0.4);
+            pointer-events: none;
+        }
+        
+        .nav-arrow {
             position: absolute;
-            top: 30px;
-            right: 30px;
-            background: rgba(168,85,247,0.3);
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
             border: 1px solid rgba(168,85,247,0.5);
             color: white;
-            font-size: 28px;
+            font-size: 32px;
             width: 50px;
             height: 50px;
             border-radius: 50%;
@@ -509,10 +537,60 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.2s;
+            z-index: 2001;
         }
-        .photo-modal .close-photo:active { transform: scale(0.95); }
+        .nav-arrow:active { 
+            transform: translateY(-50%) scale(0.95);
+            background: rgba(168,85,247,0.5);
+        }
+        .nav-arrow.prev { left: 15px; }
+        .nav-arrow.next { right: 15px; }
+        .nav-arrow.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
         
-        /* Galería de fotos en el perfil */
+        .photo-modal .close-photo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(168,85,247,0.5);
+            color: white;
+            font-size: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 2001;
+        }
+        .photo-modal .close-photo:active { 
+            transform: scale(0.95);
+            background: rgba(168,85,247,0.5);
+        }
+        
+        .photo-counter {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
+            font-family: 'Varela Round', sans-serif;
+            padding: 6px 16px;
+            border-radius: 40px;
+            border: 1px solid rgba(168,85,247,0.3);
+            z-index: 2001;
+        }
+        
         .galeria-label {
             font-size: 12px;
             color: rgba(255,255,255,0.6);
@@ -527,8 +605,13 @@
             gap: 8px;
             margin: 10px 0;
         }
-        .galeria-foto {
+        .galeria-item {
+            position: relative;
             aspect-ratio: 1;
+        }
+        .galeria-foto {
+            width: 100%;
+            height: 100%;
             border-radius: 16px;
             object-fit: cover;
             cursor: pointer;
@@ -536,6 +619,24 @@
             transition: all 0.1s;
         }
         .galeria-foto:active { transform: scale(0.95); }
+        .galeria-delete {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff2d94;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 6px rgba(0,0,0,0.5);
+        }
+        .galeria-delete:active { transform: scale(0.95); }
         .galeria-add-btn {
             aspect-ratio: 1;
             border-radius: 16px;
@@ -700,7 +801,7 @@
         
         <div class="galeria-label">📸 Mis Fotos (máx 3)</div>
         <div class="galeria-grid" id="galeriaGrid"></div>
-        <input type="file" id="inputGaleria" accept="image/jpeg,image/png,image/webp" style="display:none" multiple>
+        <input type="file" id="inputGaleria" accept="image/jpeg,image/png,image/webp" style="display:none">
         
         <input type="text" id="editNombre" placeholder="Nombre">
         <select id="editFondo">
@@ -712,16 +813,23 @@
     </div>
 </div>
 
-<!-- Modal para ver foto en grande -->
+<!-- Modal para ver fotos en carrusel -->
 <div id="photoModal" class="photo-modal">
     <div class="close-photo" id="closePhotoModal">✕</div>
-    <img id="photoModalImg" src="" alt="Foto grande">
+    <div class="carousel-container">
+        <div class="nav-arrow prev" id="prevPhoto">‹</div>
+        <div class="carousel-track" id="carouselTrack">
+            <!-- Las imágenes se insertan dinámicamente -->
+        </div>
+        <div class="nav-arrow next" id="nextPhoto">›</div>
+    </div>
+    <div class="photo-counter" id="photoCounter">1 / 1</div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, where, setDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, query, getDocs, addDoc, onSnapshot, orderBy, where, setDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { getDatabase, ref, set, onDisconnect, onValue } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-messaging.js";
 
@@ -753,6 +861,13 @@ let mensajesNoLeidos = {};
 let contactosCache = [];
 let fotoPersonalizadaTemp = null;
 let galeriaTemp = [];
+let mantenerFotoPersonalizada = false;
+
+// Variables para el carrusel
+let currentPhotoList = [];
+let currentPhotoIndex = 0;
+let touchStartX = 0;
+let touchEndX = 0;
 
 // Generar estrellas y burbujas
 const starsEl = document.getElementById('stars');
@@ -892,7 +1007,7 @@ function mostrarToast(mensaje) {
     if (!toast) return;
     toast.textContent = mensaje;
     toast.style.display = 'block';
-    setTimeout(() => toast.style.display = 'none', 1500);
+    setTimeout(() => toast.style.display = 'none', 2000);
 }
 
 async function iniciarPresencia(uid) {
@@ -952,97 +1067,24 @@ function cargarAvatares(selectedImg) {
     const container = document.getElementById('avatarSelector');
     if (!container) return;
     container.innerHTML = '';
-    fotoPersonalizadaTemp = null;
-    const preview = document.getElementById('fotoPreviewModal');
-    if (preview) preview.style.display = 'none';
     
     for (let i = 0; i < avatares.length; i++) {
         const img = document.createElement('img');
         img.src = avatares[i].img;
         img.className = 'avatar-option';
         img.alt = `Avatar ${i + 1}`;
-        if (avatares[i].img === selectedImg && !selectedImg?.startsWith('data:')) img.classList.add('selected');
-        img.onclick = (function(idx) { return function() { seleccionarAvatar(idx, null); }; })(i);
+        if (avatares[i].img === selectedImg && selectedImg && !selectedImg.startsWith('data:')) {
+            img.classList.add('selected');
+        }
+        img.onclick = (function(idx) { return function() { 
+            mantenerFotoPersonalizada = false;
+            fotoPersonalizadaTemp = null;
+            avatarSeleccionado = idx;
+            document.querySelectorAll('.avatar-option').forEach((el, i) => el.classList.toggle('selected', i === idx));
+            document.getElementById('fotoPreviewModal').style.display = 'none';
+        }; })(i);
         container.appendChild(img);
     }
-}
-
-function seleccionarAvatar(idx, fotoBase64 = null) {
-    avatarSeleccionado = idx;
-    if (fotoBase64) {
-        fotoPersonalizadaTemp = fotoBase64;
-        const preview = document.getElementById('fotoPreviewModal');
-        if (preview) {
-            preview.src = fotoBase64;
-            preview.style.display = 'block';
-        }
-    } else {
-        fotoPersonalizadaTemp = null;
-        const preview = document.getElementById('fotoPreviewModal');
-        if (preview) preview.style.display = 'none';
-    }
-    document.querySelectorAll('.avatar-option').forEach((el, i) => {
-        el.classList.toggle('selected', i === idx);
-    });
-}
-
-// ── GALERÍA DE FOTOS ───────────────────────────────────
-function cargarGaleria(galeriaFotos) {
-    const container = document.getElementById('galeriaGrid');
-    if (!container) return;
-    container.innerHTML = '';
-    // Mostrar fotos existentes
-    if (galeriaFotos && galeriaFotos.length > 0) {
-        galeriaFotos.forEach((foto, idx) => {
-            const img = document.createElement('img');
-            img.src = foto;
-            img.className = 'galeria-foto';
-            img.onclick = () => abrirFotoGrande(foto);
-            container.appendChild(img);
-        });
-    }
-    // Botón para agregar nueva foto (max 3)
-    if (!galeriaFotos || galeriaFotos.length < 3) {
-        const addBtn = document.createElement('div');
-        addBtn.className = 'galeria-add-btn';
-        addBtn.innerHTML = '+';
-        addBtn.onclick = () => iniciarSubidaGaleria();
-        container.appendChild(addBtn);
-    }
-}
-
-function iniciarSubidaGaleria() {
-    const input = document.getElementById('inputGaleria');
-    input.click();
-    input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (!file.type.startsWith('image/')) {
-            mostrarToast('❌ Solo se permiten imágenes');
-            return;
-        }
-        mostrarToast('📸 Comprimiendo imagen...');
-        try {
-            const imagenComprimida = await comprimirImagen(file, 400, 400, 0.6);
-            galeriaTemp.push(imagenComprimida);
-            cargarGaleria(galeriaTemp);
-        } catch (error) {
-            console.error(error);
-            mostrarToast('❌ Error al procesar imagen');
-        }
-    };
-}
-
-// Ver foto en grande
-function abrirFotoGrande(url) {
-    const modal = document.getElementById('photoModal');
-    const img = document.getElementById('photoModalImg');
-    img.src = url;
-    modal.classList.add('visible');
-}
-
-function cerrarFotoGrande() {
-    document.getElementById('photoModal').classList.remove('visible');
 }
 
 async function marcarComoLeidos(contactoUid) {
@@ -1186,7 +1228,7 @@ async function cargarContactos() {
             const noLeidos = mensajesNoLeidos[c.uid] || 0;
             const badgeHtml = noLeidos > 0 ? `<div class="unread-badge">${noLeidos}</div>` : '';
             return `
-                <div class="contact" data-uid="${c.uid}" data-nombre="${c.nombre}" data-galeria='${JSON.stringify(c.galeriaFotos)}'>
+                <div class="contact" data-uid="${c.uid}" data-nombre="${c.nombre}" data-galeria='${JSON.stringify(c.galeriaFotos)}' data-avatar="${c.avatarImg}">
                     <img class="contact-avatar" src="${c.avatarImg}" alt="Avatar">
                     <div class="contact-info">
                         <div class="contact-name">${c.nombre}</div>
@@ -1205,13 +1247,13 @@ async function cargarContactos() {
         });
 
         document.querySelectorAll('.contact').forEach(el => {
-            const galeriaData = el.getAttribute('data-galeria');
-            const galeriaFotos = galeriaData ? JSON.parse(galeriaData) : [];
+            const galeria = JSON.parse(el.getAttribute('data-galeria') || '[]');
+            const avatar = el.getAttribute('data-avatar');
+            
             el.addEventListener('click', (e) => {
                 if (e.target.classList.contains('contact-avatar')) {
-                    const uid = el.getAttribute('data-uid');
-                    const nombre = el.getAttribute('data-nombre');
-                    abrirPerfilContacto(uid, nombre, galeriaFotos);
+                    const fotos = [avatar, ...galeria];
+                    abrirCarrusel(fotos);
                 } else {
                     const uid = el.getAttribute('data-uid');
                     const nombre = el.getAttribute('data-nombre');
@@ -1225,32 +1267,83 @@ async function cargarContactos() {
     }
 }
 
-async function abrirPerfilContacto(uid, nombre, galeriaFotos) {
-    try {
-        const userDoc = await getDoc(doc(db, 'usuarios', uid));
-        const data = userDoc.data();
-        const avatarImg = data?.avatarImg || avatares[0].img;
-        const fotosGaleria = data?.galeriaFotos || galeriaFotos || [];
-        
-        // Mostrar modal con las fotos
-        const modal = document.getElementById('photoModal');
-        const img = document.getElementById('photoModalImg');
-        
-        // Crear un carrusel simple mostrando todas las fotos
-        if (fotosGaleria.length > 0) {
-            img.src = fotosGaleria[0];
-            modal.classList.add('visible');
-            // Podrías agregar un carrusel, pero por simplicidad mostramos la primera
-            mostrarToast(`📸 ${nombre} tiene ${fotosGaleria.length} foto(s) en su galería`);
-        } else if (avatarImg) {
-            img.src = avatarImg;
-            modal.classList.add('visible');
+// ── CARRUSEL DE FOTOS ─────────────────────────────────
+function abrirCarrusel(fotos) {
+    if (!fotos || fotos.length === 0) return;
+    currentPhotoList = fotos.filter(f => f && f.trim() !== '');
+    currentPhotoIndex = 0;
+    renderCarrusel();
+    document.getElementById('photoModal').classList.add('visible');
+}
+
+function renderCarrusel() {
+    const track = document.getElementById('carouselTrack');
+    const counter = document.getElementById('photoCounter');
+    const prevBtn = document.getElementById('prevPhoto');
+    const nextBtn = document.getElementById('nextPhoto');
+    
+    track.innerHTML = '';
+    currentPhotoList.forEach(foto => {
+        const slide = document.createElement('div');
+        slide.className = 'carousel-slide';
+        const img = document.createElement('img');
+        img.src = foto;
+        slide.appendChild(img);
+        track.appendChild(slide);
+    });
+    
+    updateCarouselPosition();
+    counter.textContent = `${currentPhotoIndex + 1} / ${currentPhotoList.length}`;
+    
+    prevBtn.classList.toggle('disabled', currentPhotoIndex === 0);
+    nextBtn.classList.toggle('disabled', currentPhotoIndex === currentPhotoList.length - 1);
+}
+
+function updateCarouselPosition() {
+    const track = document.getElementById('carouselTrack');
+    if (track) {
+        track.style.transform = `translateX(-${currentPhotoIndex * 100}%)`;
+    }
+}
+
+function nextPhoto() {
+    if (currentPhotoIndex < currentPhotoList.length - 1) {
+        currentPhotoIndex++;
+        updateCarouselPosition();
+        document.getElementById('photoCounter').textContent = `${currentPhotoIndex + 1} / ${currentPhotoList.length}`;
+        document.getElementById('prevPhoto').classList.toggle('disabled', currentPhotoIndex === 0);
+        document.getElementById('nextPhoto').classList.toggle('disabled', currentPhotoIndex === currentPhotoList.length - 1);
+    }
+}
+
+function prevPhoto() {
+    if (currentPhotoIndex > 0) {
+        currentPhotoIndex--;
+        updateCarouselPosition();
+        document.getElementById('photoCounter').textContent = `${currentPhotoIndex + 1} / ${currentPhotoList.length}`;
+        document.getElementById('prevPhoto').classList.toggle('disabled', currentPhotoIndex === 0);
+        document.getElementById('nextPhoto').classList.toggle('disabled', currentPhotoIndex === currentPhotoList.length - 1);
+    }
+}
+
+function cerrarCarrusel() {
+    document.getElementById('photoModal').classList.remove('visible');
+}
+
+// Gestos táctiles
+function handleTouchStart(e) {
+    touchStartX = e.touches[0].clientX;
+}
+
+function handleTouchEnd(e) {
+    touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 50) {
+        if (diff > 0) {
+            nextPhoto();
         } else {
-            mostrarToast('👤 Sin fotos disponibles');
+            prevPhoto();
         }
-    } catch (e) {
-        console.error(e);
-        mostrarToast('❌ Error al cargar perfil');
     }
 }
 
@@ -1278,7 +1371,10 @@ async function abrirChat(uid, nombre) {
     try {
         const contactoDoc = await getDoc(doc(db, 'usuarios', uid));
         const contactoData = contactoDoc.data();
-        document.getElementById('chatAvatar').src = contactoData?.avatarImg || avatares[0].img;
+        const avatar = contactoData?.avatarImg || avatares[0].img;
+        const galeria = contactoData?.galeriaFotos || [];
+        document.getElementById('chatAvatar').src = avatar;
+        document.getElementById('chatAvatar').setAttribute('data-fotos', JSON.stringify([avatar, ...galeria]));
 
         unsubscribePresenciaChat = escucharPresencia(uid, (online) => {
             const statusEl = document.getElementById('chatStatus');
@@ -1370,6 +1466,90 @@ function insertarEmoji(emoji) {
     input.focus();
 }
 
+// ── FUNCIONES DE GALERÍA DE PERFIL ────────────────────
+function cargarGaleria(fotos) {
+    const container = document.getElementById('galeriaGrid');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (fotos && fotos.length > 0) {
+        fotos.forEach((foto, idx) => {
+            const item = document.createElement('div');
+            item.className = 'galeria-item';
+            item.innerHTML = `
+                <img class="galeria-foto" src="${foto}" alt="Foto ${idx + 1}">
+                <button class="galeria-delete" data-index="${idx}">✕</button>
+            `;
+            item.querySelector('.galeria-foto').onclick = () => abrirCarrusel([foto]);
+            item.querySelector('.galeria-delete').onclick = (e) => {
+                e.stopPropagation();
+                if (confirm('¿Eliminar esta foto permanentemente?')) {
+                    galeriaTemp.splice(idx, 1);
+                    cargarGaleria(galeriaTemp);
+                }
+            };
+            container.appendChild(item);
+        });
+    }
+    
+    if (!fotos || fotos.length < 3) {
+        const addBtn = document.createElement('div');
+        addBtn.className = 'galeria-add-btn';
+        addBtn.innerHTML = '+';
+        addBtn.onclick = () => iniciarSubidaGaleria();
+        container.appendChild(addBtn);
+    }
+}
+
+function iniciarSubidaGaleria() {
+    const input = document.getElementById('inputGaleria');
+    input.click();
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            mostrarToast('❌ Solo se permiten imágenes');
+            return;
+        }
+        mostrarToast('📸 Comprimiendo imagen...');
+        try {
+            const imagenComprimida = await comprimirImagen(file, 400, 400, 0.6);
+            galeriaTemp.push(imagenComprimida);
+            cargarGaleria(galeriaTemp);
+        } catch (error) {
+            console.error(error);
+            mostrarToast('❌ Error al procesar imagen');
+        }
+    };
+}
+
+function iniciarSubidaFotoModal() {
+    const input = document.getElementById('inputFotoModal');
+    input.click();
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            mostrarToast('❌ Solo se permiten imágenes');
+            return;
+        }
+        mostrarToast('📸 Comprimiendo imagen...');
+        try {
+            const imagenComprimida = await comprimirImagen(file, 200, 200, 0.5);
+            fotoPersonalizadaTemp = imagenComprimida;
+            mantenerFotoPersonalizada = true;
+            document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+            const preview = document.getElementById('fotoPreviewModal');
+            preview.src = imagenComprimida;
+            preview.style.display = 'block';
+            mostrarToast('✅ Foto lista para guardar');
+        } catch (error) {
+            console.error('Error al procesar imagen:', error);
+            mostrarToast('❌ Error al procesar la imagen');
+        }
+    };
+}
+
 async function abrirModalPerfil() {
     try {
         const userDoc = await getDoc(doc(db, 'usuarios', usuarioActual.uid));
@@ -1380,20 +1560,25 @@ async function abrirModalPerfil() {
         const avatarActual = data?.avatarImg || avatares[0].img;
         const esFotoPersonalizada = avatarActual && avatarActual.startsWith('data:');
         
+        fotoPersonalizadaTemp = null;
+        galeriaTemp = [...(data?.galeriaFotos || [])];
+        mantenerFotoPersonalizada = esFotoPersonalizada;
+        
         if (esFotoPersonalizada) {
-            seleccionarAvatar(-1, avatarActual);
-            cargarAvatares(null);
+            const preview = document.getElementById('fotoPreviewModal');
+            preview.src = avatarActual;
+            preview.style.display = 'block';
+            document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+            avatarSeleccionado = -1;
         } else {
+            document.getElementById('fotoPreviewModal').style.display = 'none';
             let idx = avatares.findIndex(a => a.img === avatarActual);
             if (idx === -1) idx = 0;
-            seleccionarAvatar(idx, null);
+            avatarSeleccionado = idx;
             cargarAvatares(avatarActual);
         }
         
-        // Cargar galería
-        galeriaTemp = data?.galeriaFotos || [];
         cargarGaleria(galeriaTemp);
-        
         document.getElementById('perfilModal').style.display = 'flex';
     } catch (e) {
         console.error("Error al abrir perfil:", e);
@@ -1416,6 +1601,10 @@ async function guardarPerfil() {
     if (fotoPersonalizadaTemp) {
         avatarImg = fotoPersonalizadaTemp;
         avatarColor = "#a855f7";
+    } else if (mantenerFotoPersonalizada) {
+        const userDoc = await getDoc(doc(db, 'usuarios', usuarioActual.uid));
+        avatarImg = userDoc.data()?.avatarImg || avatares[0].img;
+        avatarColor = userDoc.data()?.avatarColor || "#a855f7";
     } else if (avatarSeleccionado >= 0 && avatares[avatarSeleccionado]) {
         avatarImg = avatares[avatarSeleccionado].img;
         avatarColor = avatares[avatarSeleccionado].color;
@@ -1462,28 +1651,6 @@ async function cerrarSesion() {
     }
 }
 
-function iniciarSubidaFotoModal() {
-    const input = document.getElementById('inputFotoModal');
-    input.click();
-    input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (!file.type.startsWith('image/')) {
-            mostrarToast('❌ Solo se permiten imágenes');
-            return;
-        }
-        mostrarToast('📸 Comprimiendo imagen...');
-        try {
-            const imagenComprimida = await comprimirImagen(file, 200, 200, 0.5);
-            seleccionarAvatar(-1, imagenComprimida);
-            mostrarToast('✅ Foto lista para guardar');
-        } catch (error) {
-            console.error('Error al procesar imagen:', error);
-            mostrarToast('❌ Error al procesar la imagen');
-        }
-    };
-}
-
 // Event listeners
 document.getElementById('refreshBtn')?.addEventListener('click', actualizarContactos);
 document.getElementById('profileBtn')?.addEventListener('click', abrirModalPerfil);
@@ -1496,26 +1663,30 @@ document.getElementById('messageInput')?.addEventListener('keypress', (e) => {
 document.getElementById('guardarPerfilBtn')?.addEventListener('click', guardarPerfil);
 document.getElementById('cerrarModalBtn')?.addEventListener('click', cerrarModalPerfil);
 document.getElementById('subirFotoModalBtn')?.addEventListener('click', iniciarSubidaFotoModal);
-document.getElementById('closePhotoModal')?.addEventListener('click', cerrarFotoGrande);
+document.getElementById('closePhotoModal')?.addEventListener('click', cerrarCarrusel);
+document.getElementById('prevPhoto')?.addEventListener('click', prevPhoto);
+document.getElementById('nextPhoto')?.addEventListener('click', nextPhoto);
 document.getElementById('photoModal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'photoModal') cerrarFotoGrande();
+    if (e.target.id === 'photoModal') cerrarCarrusel();
 });
 document.querySelectorAll('.emoji-bar button').forEach(btn => {
     btn.addEventListener('click', () => insertarEmoji(btn.getAttribute('data-emoji')));
 });
+
+// Gestos táctiles para el carrusel
+const carouselContainer = document.getElementById('photoModal');
+carouselContainer?.addEventListener('touchstart', handleTouchStart);
+carouselContainer?.addEventListener('touchend', handleTouchEnd);
 
 document.getElementById('chatAvatar')?.addEventListener('click', async () => {
     if (chatActivo) {
         try {
             const userDoc = await getDoc(doc(db, 'usuarios', chatActivo));
             const data = userDoc.data();
-            const galeria = data?.galeriaFotos || [];
             const avatar = data?.avatarImg || avatares[0].img;
-            if (galeria.length > 0) {
-                abrirFotoGrande(galeria[0]);
-            } else if (avatar) {
-                abrirFotoGrande(avatar);
-            }
+            const galeria = data?.galeriaFotos || [];
+            const todasLasFotos = [avatar, ...galeria];
+            abrirCarrusel(todasLasFotos);
         } catch(e) { console.error(e); }
     }
 });
