@@ -705,6 +705,37 @@
             white-space: nowrap;
         }
         
+        /* Banner de notificaciones */
+        .notif-banner {
+            position: fixed;
+            bottom: 80px;
+            left: 16px;
+            right: 16px;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 16px;
+            border: 1px solid rgba(168,85,247,0.5);
+            z-index: 1000;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+        .notif-banner p {
+            color: white;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .notif-banner button {
+            background: linear-gradient(180deg, #c026d3, #7c3aed);
+            border: none;
+            border-radius: 40px;
+            padding: 10px 24px;
+            color: white;
+            font-weight: bold;
+            font-family: 'Fredoka One', cursive;
+            cursor: pointer;
+        }
+        
         .empty { 
             text-align: center; 
             color: rgba(255,255,255,0.5); 
@@ -788,6 +819,12 @@
     </a>
 </nav>
 
+<!-- Banner para activar notificaciones en móvil -->
+<div id="notifBanner" class="notif-banner" style="display:none;">
+    <p>🔔 Activa las notificaciones para recibir mensajes incluso cuando la app está cerrada</p>
+    <button id="activarNotifBtn">Activar notificaciones</button>
+</div>
+
 <!-- Modal de perfil -->
 <div id="perfilModal" class="modal">
     <div class="modal-content">
@@ -818,9 +855,7 @@
     <div class="close-photo" id="closePhotoModal">✕</div>
     <div class="carousel-container">
         <div class="nav-arrow prev" id="prevPhoto">‹</div>
-        <div class="carousel-track" id="carouselTrack">
-            <!-- Las imágenes se insertan dinámicamente -->
-        </div>
+        <div class="carousel-track" id="carouselTrack"></div>
         <div class="nav-arrow next" id="nextPhoto">›</div>
     </div>
     <div class="photo-counter" id="photoCounter">1 / 1</div>
@@ -930,56 +965,98 @@ function mostrarBotonSonido() {
     document.body.appendChild(btn);
 }
 
-async function pedirPermisoNotificaciones() {
-    if (!('Notification' in window)) return;
-    if (Notification.permission === 'granted') {
-        await registrarTokenFCM();
-        return;
-    }
-    if (Notification.permission !== 'denied') {
-        const permiso = await Notification.requestPermission();
-        if (permiso === 'granted') await registrarTokenFCM();
-    }
-}
-
+// ========== NOTIFICACIONES PARA MÓVIL ==========
 async function registrarTokenFCM() {
     try {
-        await navigator.serviceWorker.register('/Zajoma/firebase-messaging-sw.js', {
-            scope: '/Zajoma/'
+        let registration;
+        
+        if ('serviceWorker' in navigator) {
+            // Desregistrar SW anteriores para evitar conflictos
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const reg of registrations) {
+                if (reg.active && (reg.scope.includes('firebase') || reg.scope.includes('sw.js'))) {
+                    await reg.unregister();
+                    console.log('🗑️ SW anterior desregistrado');
+                }
+            }
+            
+            // Registrar el SW en la raíz
+            registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+            console.log('✅ Service Worker registrado');
+            await navigator.serviceWorker.ready;
+        }
+        
+        const token = await getToken(messaging, { 
+            vapidKey: VAPID_KEY,
+            serviceWorkerRegistration: registration
         });
-        const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+        
         if (token && usuarioActual) {
-            await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { fcmToken: token });
+            await updateDoc(doc(db, 'usuarios', usuarioActual.uid), { 
+                fcmToken: token,
+                notificacionesActivas: true
+            });
+            console.log('✅ Token FCM registrado');
+            return true;
         }
     } catch (e) {
-        console.warn('FCM token error:', e);
+        console.warn('⚠️ Error FCM:', e.message);
+    }
+    return false;
+}
+
+// Mostrar banner de notificaciones (solo en móvil y si no se ha preguntado)
+function mostrarBannerNotificaciones() {
+    if (Notification.permission === 'granted') return;
+    if (Notification.permission === 'denied') return;
+    
+    const yaVisto = localStorage.getItem('notif_banner_visto');
+    if (yaVisto) return;
+    
+    // Solo mostrar en móvil (detectar por el ancho de pantalla)
+    if (window.innerWidth <= 768) {
+        const banner = document.getElementById('notifBanner');
+        if (banner) banner.style.display = 'block';
     }
 }
 
-function mostrarNotificacionNavegador(titulo, cuerpo, uid) {
-    if (Notification.permission !== 'granted') return;
-    if (document.visibilityState === 'visible') return;
-    const notif = new Notification(titulo, {
-        body: cuerpo,
-        icon: 'avatars/avatar1.png',
-        badge: 'avatars/avatar1.png',
-        tag: uid
-    });
-    notif.onclick = () => {
-        window.focus();
-        notif.close();
-    };
+// Activar notificaciones desde el banner (esto es para MÓVIL)
+async function activarNotificacionesManual() {
+    const banner = document.getElementById('notifBanner');
+    if (banner) banner.style.display = 'none';
+    localStorage.setItem('notif_banner_visto', 'true');
+    
+    const permiso = await Notification.requestPermission();
+    if (permiso === 'granted') {
+        const exito = await registrarTokenFCM();
+        if (exito) {
+            mostrarToast('✅ Notificaciones activadas');
+        } else {
+            mostrarToast('⚠️ Error al activar notificaciones');
+        }
+    } else {
+        mostrarToast('❌ Notificaciones no activadas');
+    }
 }
 
+// Escuchar mensajes cuando la app está abierta
 onMessage(messaging, (payload) => {
+    console.log('📨 Notificación recibida:', payload);
     const emisorUid = payload.data?.emisorUid;
+    
     if (emisorUid && emisorUid === chatActivo) return;
+    
     reproducirSonido();
-    mostrarNotificacionNavegador(
-        payload.notification?.title || 'Nuevo mensaje',
-        payload.notification?.body || '',
-        emisorUid
-    );
+    
+    if (Notification.permission === 'granted') {
+        new Notification(payload.notification?.title || 'Nuevo mensaje', {
+            body: payload.notification?.body || 'Tienes un nuevo mensaje',
+            icon: '/avatars/avatar1.png',
+            vibrate: [200, 100, 200]
+        });
+    }
+    
+    mostrarToast(`📨 ${payload.notification?.title || 'Nuevo mensaje'}`);
 });
 
 const COLORES_AVATAR = [
@@ -1145,11 +1222,12 @@ function iniciarListenerGlobal() {
                 const msg = change.doc.data();
                 if (msg.emisor !== chatActivo) {
                     hayNuevos = true;
-                    mostrarNotificacionNavegador(
-                        msg.nombre || 'Nuevo mensaje',
-                        msg.texto,
-                        msg.emisor
-                    );
+                    if (Notification.permission === 'granted' && document.visibilityState === 'visible') {
+                        new Notification(msg.nombre || 'Nuevo mensaje', {
+                            body: msg.texto,
+                            icon: '/avatars/avatar1.png'
+                        });
+                    }
                 }
             }
         });
@@ -1191,7 +1269,10 @@ onAuthStateChanged(auth, async (user) => {
         }
 
         await iniciarPresencia(user.uid);
-        await pedirPermisoNotificaciones();
+        
+        // Mostrar banner de notificaciones después de unos segundos (solo móvil)
+        setTimeout(() => mostrarBannerNotificaciones(), 3000);
+        
         mostrarBotonSonido();
         await cargarContactos();
         iniciarListenerGlobal();
@@ -1330,7 +1411,6 @@ function cerrarCarrusel() {
     document.getElementById('photoModal').classList.remove('visible');
 }
 
-// Gestos táctiles
 function handleTouchStart(e) {
     touchStartX = e.touches[0].clientX;
 }
@@ -1374,7 +1454,6 @@ async function abrirChat(uid, nombre) {
         const avatar = contactoData?.avatarImg || avatares[0].img;
         const galeria = contactoData?.galeriaFotos || [];
         document.getElementById('chatAvatar').src = avatar;
-        document.getElementById('chatAvatar').setAttribute('data-fotos', JSON.stringify([avatar, ...galeria]));
 
         unsubscribePresenciaChat = escucharPresencia(uid, (online) => {
             const statusEl = document.getElementById('chatStatus');
@@ -1466,7 +1545,6 @@ function insertarEmoji(emoji) {
     input.focus();
 }
 
-// ── FUNCIONES DE GALERÍA DE PERFIL ────────────────────
 function cargarGaleria(fotos) {
     const container = document.getElementById('galeriaGrid');
     if (!container) return;
@@ -1669,11 +1747,11 @@ document.getElementById('nextPhoto')?.addEventListener('click', nextPhoto);
 document.getElementById('photoModal')?.addEventListener('click', (e) => {
     if (e.target.id === 'photoModal') cerrarCarrusel();
 });
+document.getElementById('activarNotifBtn')?.addEventListener('click', activarNotificacionesManual);
 document.querySelectorAll('.emoji-bar button').forEach(btn => {
     btn.addEventListener('click', () => insertarEmoji(btn.getAttribute('data-emoji')));
 });
 
-// Gestos táctiles para el carrusel
 const carouselContainer = document.getElementById('photoModal');
 carouselContainer?.addEventListener('touchstart', handleTouchStart);
 carouselContainer?.addEventListener('touchend', handleTouchEnd);
