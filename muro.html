@@ -3,64 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Zajoma — Muro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>Amaime Chat — Muro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Fredoka+One&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --azul: #2E75B6;
-            --azul-oscuro: #1A4A7A;
-            --azul-claro: #ECF5FF;
-            --acento: #FF6B6B;
-            --verde: #4CAF50;
-            --gris: #888;
-            --blanco: #fff;
-            --fondo: #E8F2FB;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
         body {
-            font-family: 'Nunito', sans-serif;
-            background: var(--fondo);
+            font-family: 'Varela Round', 'Segoe UI', sans-serif;
+            background: #1a0533;
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
         }
-
-        /* HEADER */
+        
+        /* Fondo aurora igual que el login y chat */
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 20%, #7b2ff7cc 0%, transparent 60%),
+                radial-gradient(ellipse 70% 50% at 80% 80%, #ff2d9488 0%, transparent 55%),
+                radial-gradient(ellipse 60% 70% at 60% 10%, #00c6ff55 0%, transparent 50%),
+                linear-gradient(160deg, #1a0533 0%, #2d0b5e 40%, #1a0533 100%);
+            z-index: 0;
+        }
+        
+        .stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+        .star { position: absolute; border-radius: 50%; animation: twinkle 3s infinite alternate; }
+        @keyframes twinkle {
+            0% { opacity: 0.2; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.4); }
+        }
+        
+        .bubbles { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 0; pointer-events: none; }
+        .bubble { position: absolute; bottom: -60px; border-radius: 50%; opacity: 0.15; animation: floatUp linear infinite; }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 0.15; }
+            80% { opacity: 0.1; }
+            100% { transform: translateY(-110vh) scale(1.2); opacity: 0; }
+        }
+        
+        /* HEADER ESTILO AURORA */
         .app-header {
-            background: var(--azul);
+            position: relative;
+            z-index: 1;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(12px);
             padding: 14px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             color: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(168,85,247,0.3);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
             flex-shrink: 0;
         }
         .app-header h2 {
+            font-family: 'Fredoka One', cursive;
             font-size: 18px;
-            font-weight: 800;
+            text-shadow: 0 0 8px rgba(168,85,247,0.5);
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
             flex: 1;
             text-align: center;
-            letter-spacing: 0.3px;
         }
         .profile-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            width: 38px;
-            height: 38px;
+            background: rgba(168,85,247,0.2);
+            border: 1px solid rgba(168,85,247,0.5);
             border-radius: 50%;
-            overflow: hidden;
-            border: 2px solid rgba(255,255,255,0.4);
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
         }
-        .profile-avatar { width: 100%; height: 100%; object-fit: cover; }
-        .header-placeholder { width: 38px; }
-
+        .profile-btn:active {
+            transform: scale(0.95);
+            background: rgba(168,85,247,0.4);
+            box-shadow: 0 0 12px rgba(168,85,247,0.6);
+        }
+        .profile-avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .header-placeholder { width: 40px; }
+        
         /* FEED */
         .feed {
+            position: relative;
+            z-index: 1;
             flex: 1;
             overflow-y: auto;
             padding: 12px 12px 80px;
@@ -68,13 +108,26 @@
             flex-direction: column;
             gap: 14px;
         }
-
+        
+        /* Scroll estilo neón */
+        .feed::-webkit-scrollbar {
+            width: 6px;
+            background: rgba(168,85,247,0.15);
+            border-radius: 10px;
+        }
+        .feed::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #c084fc, #a855f7);
+            border-radius: 10px;
+        }
+        
         /* NUEVA PUBLICACIÓN */
         .nueva-publicacion {
-            background: white;
-            border-radius: 16px;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
             padding: 14px;
-            box-shadow: 0 2px 10px rgba(46,117,182,0.1);
+            border: 1px solid rgba(168,85,247,0.2);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -85,28 +138,32 @@
             gap: 10px;
         }
         .mi-avatar-mini {
-            width: 38px;
-            height: 38px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid var(--azul-claro);
+            border: 2px solid rgba(168,85,247,0.6);
             flex-shrink: 0;
         }
         .nueva-pub-input {
             flex: 1;
-            border: none;
-            background: var(--azul-claro);
+            border: 1px solid rgba(168,85,247,0.4);
+            background: rgba(0,0,0,0.5);
             border-radius: 20px;
-            padding: 10px 16px;
+            padding: 12px 16px;
             font-size: 14px;
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Varela Round', sans-serif;
             outline: none;
-            color: #333;
+            color: white;
             resize: none;
             min-height: 40px;
             max-height: 120px;
         }
-        .nueva-pub-input::placeholder { color: #aaa; }
+        .nueva-pub-input::placeholder { color: rgba(255,255,255,0.3); }
+        .nueva-pub-input:focus {
+            border-color: #c084fc;
+            box-shadow: 0 0 0 3px rgba(168,85,247,0.2);
+        }
         .nueva-pub-actions {
             display: flex;
             justify-content: flex-end;
@@ -115,30 +172,33 @@
         }
         .char-count {
             font-size: 11px;
-            color: var(--gris);
+            color: rgba(255,255,255,0.5);
         }
-        .char-count.warning { color: #FF6B6B; }
+        .char-count.warning { color: #ff2d94; }
         .publicar-btn {
-            background: var(--azul);
+            background: linear-gradient(180deg, #c026d3, #7c3aed);
             color: white;
             border: none;
-            border-radius: 20px;
+            border-radius: 40px;
             padding: 8px 20px;
             font-size: 14px;
-            font-weight: 700;
-            font-family: 'Nunito', sans-serif;
+            font-weight: bold;
+            font-family: 'Fredoka One', cursive;
             cursor: pointer;
             transition: opacity 0.2s, transform 0.1s;
+            box-shadow: 0 2px 8px rgba(192,38,211,0.3);
         }
         .publicar-btn:active { transform: scale(0.97); }
         .publicar-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
+        
         /* POSTS */
         .post {
-            background: white;
-            border-radius: 16px;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
             padding: 16px;
-            box-shadow: 0 2px 10px rgba(46,117,182,0.08);
+            border: 1px solid rgba(168,85,247,0.2);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             animation: fadeIn 0.3s ease;
         }
         @keyframes fadeIn {
@@ -152,50 +212,56 @@
             margin-bottom: 10px;
         }
         .post-avatar {
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid var(--azul-claro);
+            border: 2px solid rgba(168,85,247,0.6);
             flex-shrink: 0;
+            cursor: pointer;
         }
-        .post-meta { flex: 1; }
+        .post-meta { flex: 1; cursor: pointer; }
         .post-autor {
-            font-weight: 800;
+            font-weight: bold;
             font-size: 14px;
-            color: var(--azul-oscuro);
+            color: #fff;
+            text-shadow: 0 0 4px rgba(0,0,0,0.5);
         }
         .post-fecha {
             font-size: 11px;
-            color: var(--gris);
-            margin-top: 1px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 2px;
         }
         .post-menu-btn {
-            background: none;
-            border: none;
-            font-size: 20px;
-            color: var(--gris);
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(168,85,247,0.3);
+            font-size: 18px;
+            color: rgba(255,255,255,0.7);
             cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 8px;
+            padding: 4px 10px;
+            border-radius: 20px;
             line-height: 1;
+            transition: all 0.1s;
         }
-        .post-menu-btn:hover { background: var(--azul-claro); }
-
+        .post-menu-btn:active {
+            background: rgba(168,85,247,0.3);
+            transform: scale(0.95);
+        }
+        
         .post-texto {
             font-size: 15px;
-            color: #222;
+            color: rgba(255,255,255,0.9);
             line-height: 1.55;
             margin-bottom: 14px;
             white-space: pre-wrap;
             word-break: break-word;
         }
-
+        
         .post-actions {
             display: flex;
             align-items: center;
             gap: 6px;
-            border-top: 1px solid #f0f0f0;
+            border-top: 1px solid rgba(168,85,247,0.2);
             padding-top: 10px;
         }
         .action-btn {
@@ -205,20 +271,22 @@
             background: none;
             border: none;
             font-size: 13px;
-            font-family: 'Nunito', sans-serif;
-            font-weight: 700;
-            color: var(--gris);
+            font-family: 'Varela Round', sans-serif;
+            font-weight: bold;
+            color: rgba(255,255,255,0.5);
             cursor: pointer;
             padding: 6px 12px;
             border-radius: 20px;
-            transition: background 0.15s, color 0.15s;
+            transition: all 0.15s;
         }
-        .action-btn:hover { background: var(--azul-claro); }
-        .action-btn.liked { color: var(--acento); }
-        .action-btn.liked:hover { background: #fff0f0; }
+        .action-btn:active {
+            background: rgba(168,85,247,0.2);
+            transform: scale(0.97);
+        }
+        .action-btn.liked { color: #ff2d94; }
         .action-btn .icon { font-size: 16px; }
         .action-btn.comentar-btn { margin-left: auto; }
-
+        
         /* COMENTARIOS */
         .comentarios-section {
             margin-top: 12px;
@@ -227,42 +295,44 @@
             gap: 8px;
         }
         .comentarios-section.visible { display: flex; }
-
+        
         .comentario {
             display: flex;
             gap: 8px;
             align-items: flex-start;
         }
         .comentario-avatar {
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             object-fit: cover;
             flex-shrink: 0;
+            border: 1px solid rgba(168,85,247,0.4);
         }
         .comentario-burbuja {
-            background: var(--azul-claro);
-            border-radius: 12px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 16px;
             padding: 8px 12px;
             flex: 1;
+            border: 1px solid rgba(168,85,247,0.2);
         }
         .comentario-autor {
-            font-weight: 800;
+            font-weight: bold;
             font-size: 12px;
-            color: var(--azul-oscuro);
+            color: #c084fc;
         }
         .comentario-texto {
             font-size: 13px;
-            color: #333;
+            color: rgba(255,255,255,0.8);
             margin-top: 2px;
             word-break: break-word;
         }
         .comentario-fecha {
             font-size: 10px;
-            color: var(--gris);
+            color: rgba(255,255,255,0.4);
             margin-top: 3px;
         }
-
+        
         .nuevo-comentario {
             display: flex;
             gap: 8px;
@@ -271,53 +341,63 @@
         }
         .comentario-input {
             flex: 1;
-            border: 1px solid #ddd;
-            background: white;
+            border: 1px solid rgba(168,85,247,0.4);
+            background: rgba(0,0,0,0.5);
             border-radius: 20px;
             padding: 8px 14px;
             font-size: 13px;
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Varela Round', sans-serif;
             outline: none;
+            color: white;
         }
-        .comentario-input:focus { border-color: var(--azul); }
+        .comentario-input::placeholder { color: rgba(255,255,255,0.3); }
+        .comentario-input:focus {
+            border-color: #c084fc;
+            box-shadow: 0 0 0 3px rgba(168,85,247,0.2);
+        }
         .enviar-comentario-btn {
-            background: var(--azul);
+            background: linear-gradient(180deg, #c026d3, #7c3aed);
             color: white;
             border: none;
             border-radius: 50%;
-            width: 34px;
-            height: 34px;
+            width: 36px;
+            height: 36px;
             font-size: 16px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            transition: opacity 0.2s;
+            transition: all 0.1s;
         }
+        .enviar-comentario-btn:active { transform: scale(0.95); }
         .enviar-comentario-btn:disabled { opacity: 0.5; }
-
+        
         /* EMPTY STATE */
         .empty-feed {
             text-align: center;
-            color: var(--gris);
-            padding: 40px 20px;
+            color: rgba(255,255,255,0.5);
+            padding: 50px 20px;
             font-size: 15px;
             line-height: 1.6;
+            background: rgba(0,0,0,0.3);
+            border-radius: 24px;
+            margin: 20px;
         }
         .empty-feed .big-emoji { font-size: 48px; margin-bottom: 12px; display: block; }
-
-        /* BARRA NAVEGACIÓN */
+        
+        /* BARRA NAVEGACIÓN - MISMO ESTILO QUE CHAT */
         .nav-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: white;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(12px);
             display: flex;
-            border-top: 1px solid #ddd;
+            border-top: 1px solid rgba(168,85,247,0.3);
             z-index: 100;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 -2px 20px rgba(0,0,0,0.2);
         }
         .nav-btn {
             flex: 1;
@@ -325,44 +405,49 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 10px;
+            padding: 10px 5px;
             gap: 3px;
             background: none;
             border: none;
             cursor: pointer;
-            color: var(--gris);
-            font-family: 'Nunito', sans-serif;
+            color: rgba(255,255,255,0.5);
+            font-family: 'Varela Round', sans-serif;
             font-size: 11px;
-            font-weight: 700;
+            transition: all 0.1s;
             text-decoration: none;
-            transition: color 0.2s;
         }
-        .nav-btn .nav-icon { font-size: 22px; }
-        .nav-btn.active { color: var(--azul); }
-
+        .nav-btn .nav-icon { font-size: 24px; }
+        .nav-btn.active { 
+            color: #c084fc; 
+            text-shadow: 0 0 8px rgba(192,132,252,0.5);
+        }
+        
         /* MENU CONTEXTUAL (borrar post) */
         .context-menu {
             position: fixed;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(168,85,247,0.4);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             z-index: 500;
             overflow: hidden;
             display: none;
         }
         .context-menu.visible { display: block; }
         .context-menu-item {
-            padding: 14px 20px;
+            padding: 12px 20px;
             font-size: 14px;
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Varela Round', sans-serif;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 8px;
+            color: white;
         }
-        .context-menu-item:hover { background: var(--azul-claro); }
-        .context-menu-item.danger { color: #e63946; }
-
+        .context-menu-item:hover { background: rgba(168,85,247,0.2); }
+        .context-menu-item.danger { color: #ff2d94; }
+        
         /* OVERLAY para cerrar menú */
         .overlay {
             position: fixed;
@@ -371,25 +456,31 @@
             display: none;
         }
         .overlay.visible { display: block; }
-
+        
         .toast {
             position: fixed;
             bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0,0,0,0.8);
-            color: white;
+            backdrop-filter: blur(8px);
+            color: #c084fc;
             padding: 8px 16px;
             border-radius: 25px;
             font-size: 12px;
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Varela Round', sans-serif;
             z-index: 600;
             display: none;
             white-space: nowrap;
+            border: 1px solid rgba(168,85,247,0.4);
         }
     </style>
 </head>
 <body>
+
+<!-- Generamos estrellas y burbujas -->
+<div class="stars" id="stars"></div>
+<div class="bubbles" id="bubbles"></div>
 
 <div class="app-header">
     <div class="header-placeholder"></div>
@@ -464,7 +555,31 @@ const db = getFirestore(app);
 
 let usuarioActual = null;
 let datosUsuario = null;
-let postMenuActivo = null; // id del post con menú abierto
+let postMenuActivo = null;
+
+// Generar estrellas
+const starsEl = document.getElementById('stars');
+if (starsEl) {
+    for (let i = 0; i < 60; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        const size = Math.random() * 3 + 1;
+        s.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;background:${['#c084fc','#f472b6','#67e8f9','#fff','#fbbf24'][Math.floor(Math.random()*5)]};animation-delay:${Math.random()*3}s;animation-duration:${2+Math.random()*3}s;`;
+        starsEl.appendChild(s);
+    }
+}
+// Generar burbujas
+const bubblesEl = document.getElementById('bubbles');
+if (bubblesEl) {
+    const bColors = ['#7c3aed','#c026d3','#ec4899','#0ea5e9','#06b6d4'];
+    for (let i = 0; i < 12; i++) {
+        const b = document.createElement('div');
+        b.className = 'bubble';
+        const size = 30 + Math.random() * 80;
+        b.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;background:${bColors[Math.floor(Math.random()*bColors.length)]};animation-duration:${8+Math.random()*12}s;animation-delay:${Math.random()*10}s;`;
+        bubblesEl.appendChild(b);
+    }
+}
 
 function escaparHTML(texto) {
     const div = document.createElement('div');
@@ -499,7 +614,6 @@ input.addEventListener('input', () => {
     const len = input.value.length;
     charCount.textContent = `${len}/300`;
     charCount.classList.toggle('warning', len > 260);
-    // auto-resize
     input.style.height = 'auto';
     input.style.height = input.scrollHeight + 'px';
 });
@@ -664,7 +778,7 @@ function cargarComentarios(postId) {
         const lista = document.getElementById(`lista-${postId}`);
         if (!lista) return;
         if (snapshot.empty) {
-            lista.innerHTML = '<div style="font-size:12px;color:#aaa;text-align:center;padding:4px 0;">Sin comentarios aún</div>';
+            lista.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,0.4);text-align:center;padding:4px 0;">Sin comentarios aún</div>';
             return;
         }
         lista.innerHTML = snapshot.docs.map(d => {
@@ -695,10 +809,11 @@ async function enviarComentario(postId, inputEl) {
             texto,
             fecha: Date.now()
         });
-        // Actualizamos el contador en el post
-        await updateDoc(doc(db, 'publicaciones', postId), {
-            comentariosCount: (await getDoc(doc(db, 'publicaciones', postId))).data()?.comentariosCount + 1 || 1
-        });
+        // Actualizar contador
+        const postRef = doc(db, 'publicaciones', postId);
+        const postSnap = await getDoc(postRef);
+        const comentariosCount = (postSnap.data()?.comentariosCount || 0) + 1;
+        await updateDoc(postRef, { comentariosCount });
     } catch (e) {
         console.error(e);
         mostrarToast('❌ Error al comentar');
@@ -728,10 +843,8 @@ document.getElementById('eliminarPostBtn').addEventListener('click', async () =>
     if (!postMenuActivo) return;
     cerrarMenu();
     try {
-        // Borrar comentarios primero
         const comentariosSnap = await getDocs(collection(db, 'publicaciones', postMenuActivo, 'comentarios'));
         await Promise.all(comentariosSnap.docs.map(d => deleteDoc(d.ref)));
-        // Borrar el post
         await deleteDoc(doc(db, 'publicaciones', postMenuActivo));
         mostrarToast('🗑️ Publicación eliminada');
     } catch (e) {
