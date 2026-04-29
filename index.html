@@ -2,6 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <link rel="manifest" href="/Zajoma/manifest.json">
+    <meta name="theme-color" content="#7c3aed">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Amaime Chat - Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&family=Fredoka+One&display=swap" rel="stylesheet">
@@ -149,7 +151,7 @@
             box-shadow: 0 0 0 2px rgba(192,132,252,0.35), 0 0 12px rgba(192,132,252,0.5);
             transform: scale(1.08);
         }
-        /* Botón subir foto propia */
+        /* Bot贸n subir foto propia */
         .subir-foto-btn {
             background: linear-gradient(180deg, #a855f7, #7c3aed);
             border: none;
@@ -189,61 +191,61 @@
 
 <div class="wrapper">
     <div class="logo-area">
-        <div class="logo-icon">💬</div>
+        <div class="logo-icon">馃挰</div>
         <div class="logo-title">Amaime Chat</div>
-        <div class="logo-sub">conecta · comparte · vive</div>
+        <div class="logo-sub">conecta 路 comparte 路 vive</div>
     </div>
 
     <div class="card">
         <div class="tabs">
-            <button class="tab-btn active" id="tabLogin" onclick="mostrarLogin()">Iniciar sesión</button>
+            <button class="tab-btn active" id="tabLogin" onclick="mostrarLogin()">Iniciar sesi贸n</button>
             <button class="tab-btn" id="tabReg" onclick="mostrarRegistro()">Registrarse</button>
         </div>
 
         <div id="loginPanel">
             <div class="field-wrap">
-                <label class="field-label">Correo electrónico</label>
+                <label class="field-label">Correo electr贸nico</label>
                 <input type="email" id="loginEmail" placeholder="tu@correo.com" autocomplete="email">
             </div>
             <div class="field-wrap">
-                <label class="field-label">Contraseña</label>
-                <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+                <label class="field-label">Contrase帽a</label>
+                <input type="password" id="loginPassword" placeholder="鈥⑩€⑩€⑩€⑩€⑩€⑩€⑩€? autocomplete="current-password">
             </div>
-            <button class="btn-main" onclick="iniciarSesion()">✨ Entrar al chat</button>
+            <button class="btn-main" onclick="iniciarSesion()">鉁?Entrar al chat</button>
         </div>
 
         <div id="registerPanel" style="display:none">
             <div class="field-wrap">
                 <label class="field-label">Tu nombre</label>
-                <input type="text" id="regNombre" placeholder="¿Cómo te llamas?">
+                <input type="text" id="regNombre" placeholder="驴C贸mo te llamas?">
             </div>
             <div class="field-wrap">
-                <label class="field-label">Correo electrónico</label>
+                <label class="field-label">Correo electr贸nico</label>
                 <input type="email" id="regEmail" placeholder="tu@correo.com" autocomplete="email">
             </div>
             <div class="field-wrap">
-                <label class="field-label">Contraseña</label>
-                <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+                <label class="field-label">Contrase帽a</label>
+                <input type="password" id="regPassword" placeholder="M铆nimo 6 caracteres" autocomplete="new-password">
             </div>
-            <div class="avatar-section-label">🎭 Elige tu avatar</div>
+            <div class="avatar-section-label">馃幁 Elige tu avatar</div>
             <div id="avatarSelector" class="avatar-grid"></div>
             
-            <!-- Botón subir foto propia -->
+            <!-- Bot贸n subir foto propia -->
             <button class="subir-foto-btn" id="subirFotoBtn">
-                📷 Subir mi foto
+                馃摲 Subir mi foto
             </button>
             <input type="file" id="inputFoto" accept="image/jpeg,image/png,image/webp" style="display:none">
             <div style="text-align: center; margin: 5px 0;">
                 <img id="fotoPreview" class="foto-preview" alt="Vista previa">
             </div>
             
-            <button class="btn-main" onclick="registrarUsuario()">🌟 Crear mi cuenta</button>
+            <button class="btn-main" onclick="registrarUsuario()">馃専 Crear mi cuenta</button>
         </div>
 
         <div id="errorMsg" class="error-msg"></div>
     </div>
 
-    <div class="footer-deco">★ Amaime Chat 2025 ★</div>
+    <div class="footer-deco">鈽?Amaime Chat 2025 鈽?/div>
 </div>
 
 <script>
@@ -316,7 +318,7 @@ window.seleccionarAvatar = (idx, fotoBase64 = null) => {
     avatarSeleccionado = idx;
     if (fotoBase64) {
         fotoPersonalizada = fotoBase64;
-        // Mostrar la previsualización
+        // Mostrar la previsualizaci贸n
         const preview = document.getElementById('fotoPreview');
         if (preview) {
             preview.src = fotoBase64;
@@ -332,7 +334,7 @@ window.seleccionarAvatar = (idx, fotoBase64 = null) => {
 
 function mostrarError(msg) {
     const el = document.getElementById('errorMsg');
-    el.innerHTML = '⚠️ ' + msg;
+    el.innerHTML = '鈿狅笍 ' + msg;
     setTimeout(() => el.innerHTML = '', 4000);
 }
 
@@ -354,7 +356,7 @@ window.mostrarLogin = () => {
     document.getElementById('tabReg').classList.remove('active');
 };
 
-// ── COMPRESIÓN DE IMAGEN ───────────────────────────────
+// 鈹€鈹€ COMPRESI脫N DE IMAGEN 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 async function comprimirImagen(file, maxWidth = 200, maxHeight = 200, quality = 0.5) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -364,7 +366,7 @@ async function comprimirImagen(file, maxWidth = 200, maxHeight = 200, quality = 
                 let width = img.width;
                 let height = img.height;
                 
-                // Mantener proporción
+                // Mantener proporci贸n
                 if (width > height) {
                     if (width > maxWidth) {
                         height = (height * maxWidth) / width;
@@ -404,20 +406,20 @@ function iniciarSubidaFoto() {
         if (!file) return;
         
         if (!file.type.startsWith('image/')) {
-            mostrarError('❌ Solo se permiten imágenes');
+            mostrarError('鉂?Solo se permiten im谩genes');
             return;
         }
         
-        mostrarError('📸 Comprimiendo imagen...');
+        mostrarError('馃摳 Comprimiendo imagen...');
         
         try {
             const imagenComprimida = await comprimirImagen(file, 200, 200, 0.5);
-            // Usar un índice especial (-1) para indicar que es foto personalizada
+            // Usar un 铆ndice especial (-1) para indicar que es foto personalizada
             seleccionarAvatar(-1, imagenComprimida);
-            mostrarError('✅ Foto lista para usar');
+            mostrarError('鉁?Foto lista para usar');
         } catch (error) {
             console.error('Error al procesar imagen:', error);
-            mostrarError('❌ Error al procesar la imagen');
+            mostrarError('鉂?Error al procesar la imagen');
         }
     };
 }
@@ -428,9 +430,9 @@ window.registrarUsuario = async () => {
     const password = document.getElementById('regPassword').value;
     
     if (!nombre || !email || !password) { mostrarError('Completa todos los campos'); return; }
-    if (password.length < 6) { mostrarError('La contraseña debe tener al menos 6 caracteres'); return; }
+    if (password.length < 6) { mostrarError('La contrase帽a debe tener al menos 6 caracteres'); return; }
     
-    // Determinar qué imagen usar
+    // Determinar qu茅 imagen usar
     let avatarImg;
     let avatarColor;
     
@@ -458,8 +460,8 @@ window.registrarUsuario = async () => {
         window.location.href = 'chat.html';
     } catch (error) { 
         let msg = error.message;
-        if (msg.includes('email-already-in-use')) msg = 'Este correo ya está registrado';
-        else if (msg.includes('weak-password')) msg = 'Contraseña muy débil, mínimo 6 caracteres';
+        if (msg.includes('email-already-in-use')) msg = 'Este correo ya est谩 registrado';
+        else if (msg.includes('weak-password')) msg = 'Contrase帽a muy d茅bil, m铆nimo 6 caracteres';
         mostrarError(msg); 
     }
 };
@@ -467,18 +469,18 @@ window.registrarUsuario = async () => {
 window.iniciarSesion = async () => {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
-    if (!email || !password) { mostrarError('Ingresa email y contraseña'); return; }
+    if (!email || !password) { mostrarError('Ingresa email y contrase帽a'); return; }
     try {
         await signInWithEmailAndPassword(auth, email, password);
         window.location.href = 'chat.html';
     } catch (error) { 
         let msg = error.message;
-        if (msg.includes('invalid-credential')) msg = 'Correo o contraseña incorrectos';
+        if (msg.includes('invalid-credential')) msg = 'Correo o contrase帽a incorrectos';
         mostrarError(msg); 
     }
 };
 
-// Event listener para el botón subir foto
+// Event listener para el bot贸n subir foto
 document.getElementById('subirFotoBtn')?.addEventListener('click', iniciarSubidaFoto);
 </script>
 </body>
